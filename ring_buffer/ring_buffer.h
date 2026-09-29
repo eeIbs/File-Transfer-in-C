@@ -1,0 +1,34 @@
+#ifndef RING_BUFFER_H
+#define RING_BUFFER_H
+
+#include "../common.h"
+#include "stdbool.h"
+
+#define QUEUE_CAPACITY 32
+
+typedef struct{
+
+    void *event_pointer_buffer[QUEUE_CAPACITY];
+    
+    int front;
+    int rear;
+    
+    CONDITION_VARIABLE not_full;
+    CONDITION_VARIABLE not_empty;    
+    CRITICAL_SECTION lock;
+
+} ring_buffer;
+
+
+void ring_buffer_init(ring_buffer* q);
+
+bool isEmpty(ring_buffer* q);
+
+bool isFull(ring_buffer* q);
+
+void enqueue(ring_buffer *q, void *data_pointer);
+
+void* dequeue(ring_buffer *q);
+
+
+#endif

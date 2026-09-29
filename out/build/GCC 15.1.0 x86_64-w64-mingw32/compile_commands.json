@@ -1,0 +1,188 @@
+[
+{
+  "directory": "E:/Socket programming/File transfer/out/build/GCC 15.1.0 x86_64-w64-mingw32",
+  "command": "E:\\MinGW\\mingw64\\bin\\gcc.exe   -g -o CMakeFiles\\recv_data_test.dir\\tests\\recv_data_test.c.obj -c \"E:\\Socket programming\\File transfer\\tests\\recv_data_test.c\"",
+  "file": "E:/Socket programming/File transfer/tests/recv_data_test.c",
+  "output": "CMakeFiles/recv_data_test.dir/tests/recv_data_test.c.obj"
+},
+{
+  "directory": "E:/Socket programming/File transfer/out/build/GCC 15.1.0 x86_64-w64-mingw32",
+  "command": "E:\\MinGW\\mingw64\\bin\\gcc.exe   -g -o CMakeFiles\\recv_data_test.dir\\transport\\recv_data\\recv_data.c.obj -c \"E:\\Socket programming\\File transfer\\transport\\recv_data\\recv_data.c\"",
+  "file": "E:/Socket programming/File transfer/transport/recv_data/recv_data.c",
+  "output": "CMakeFiles/recv_data_test.dir/transport/recv_data/recv_data.c.obj"
+},
+{
+  "directory": "E:/Socket programming/File transfer/out/build/GCC 15.1.0 x86_64-w64-mingw32",
+  "command": "E:\\MinGW\\mingw64\\bin\\gcc.exe   -g -o CMakeFiles\\recv_data_test.dir\\error_handling\\error_print.c.obj -c \"E:\\Socket programming\\File transfer\\error_handling\\error_print.c\"",
+  "file": "E:/Socket programming/File transfer/error_handling/error_print.c",
+  "output": "CMakeFiles/recv_data_test.dir/error_handling/error_print.c.obj"
+},
+{
+  "directory": "E:/Socket programming/File transfer/out/build/GCC 15.1.0 x86_64-w64-mingw32",
+  "command": "E:\\MinGW\\mingw64\\bin\\gcc.exe   -g -o CMakeFiles\\recv_data_test.dir\\ring_buffer\\ring_buffer.c.obj -c \"E:\\Socket programming\\File transfer\\ring_buffer\\ring_buffer.c\"",
+  "file": "E:/Socket programming/File transfer/ring_buffer/ring_buffer.c",
+  "output": "CMakeFiles/recv_data_test.dir/ring_buffer/ring_buffer.c.obj"
+},
+{
+  "directory": "E:/Socket programming/File transfer/out/build/GCC 15.1.0 x86_64-w64-mingw32",
+  "command": "E:\\MinGW\\mingw64\\bin\\gcc.exe   -g -o CMakeFiles\\file_reader_test.dir\\tests\\file_reader_test.c.obj -c \"E:\\Socket programming\\File transfer\\tests\\file_reader_test.c\"",
+  "file": "E:/Socket programming/File transfer/tests/file_reader_test.c",
+  "output": "CMakeFiles/file_reader_test.dir/tests/file_reader_test.c.obj"
+},
+{
+  "directory": "E:/Socket programming/File transfer/out/build/GCC 15.1.0 x86_64-w64-mingw32",
+  "command": "E:\\MinGW\\mingw64\\bin\\gcc.exe   -g -o CMakeFiles\\file_reader_test.dir\\file_reader\\file_reader.c.obj -c \"E:\\Socket programming\\File transfer\\file_reader\\file_reader.c\"",
+  "file": "E:/Socket programming/File transfer/file_reader/file_reader.c",
+  "output": "CMakeFiles/file_reader_test.dir/file_reader/file_reader.c.obj"
+},
+{
+  "directory": "E:/Socket programming/File transfer/out/build/GCC 15.1.0 x86_64-w64-mingw32",
+  "command": "E:\\MinGW\\mingw64\\bin\\gcc.exe   -g -o CMakeFiles\\file_reader_test.dir\\error_handling\\error_print.c.obj -c \"E:\\Socket programming\\File transfer\\error_handling\\error_print.c\"",
+  "file": "E:/Socket programming/File transfer/error_handling/error_print.c",
+  "output": "CMakeFiles/file_reader_test.dir/error_handling/error_print.c.obj"
+},
+{
+  "directory": "E:/Socket programming/File transfer/out/build/GCC 15.1.0 x86_64-w64-mingw32",
+  "command": "E:\\MinGW\\mingw64\\bin\\gcc.exe   -g -o CMakeFiles\\file_reader_test.dir\\ring_buffer\\ring_buffer.c.obj -c \"E:\\Socket programming\\File transfer\\ring_buffer\\ring_buffer.c\"",
+  "file": "E:/Socket programming/File transfer/ring_buffer/ring_buffer.c",
+  "output": "CMakeFiles/file_reader_test.dir/ring_buffer/ring_buffer.c.obj"
+},
+{
+  "directory": "E:/Socket programming/File transfer/out/build/GCC 15.1.0 x86_64-w64-mingw32",
+  "command": "E:\\MinGW\\mingw64\\bin\\gcc.exe   -g -o CMakeFiles\\file_reconstructor_test.dir\\tests\\file_reconstructor_test.c.obj -c \"E:\\Socket programming\\File transfer\\tests\\file_reconstructor_test.c\"",
+  "file": "E:/Socket programming/File transfer/tests/file_reconstructor_test.c",
+  "output": "CMakeFiles/file_reconstructor_test.dir/tests/file_reconstructor_test.c.obj"
+},
+{
+  "directory": "E:/Socket programming/File transfer/out/build/GCC 15.1.0 x86_64-w64-mingw32",
+  "command": "E:\\MinGW\\mingw64\\bin\\gcc.exe   -g -o CMakeFiles\\file_reconstructor_test.dir\\file_reconstructor\\file_reconstructor.c.obj -c \"E:\\Socket programming\\File transfer\\file_reconstructor\\file_reconstructor.c\"",
+  "file": "E:/Socket programming/File transfer/file_reconstructor/file_reconstructor.c",
+  "output": "CMakeFiles/file_reconstructor_test.dir/file_reconstructor/file_reconstructor.c.obj"
+},
+{
+  "directory": "E:/Socket programming/File transfer/out/build/GCC 15.1.0 x86_64-w64-mingw32",
+  "command": "E:\\MinGW\\mingw64\\bin\\gcc.exe   -g -o CMakeFiles\\file_reconstructor_test.dir\\file_reader\\file_reader.c.obj -c \"E:\\Socket programming\\File transfer\\file_reader\\file_reader.c\"",
+  "file": "E:/Socket programming/File transfer/file_reader/file_reader.c",
+  "output": "CMakeFiles/file_reconstructor_test.dir/file_reader/file_reader.c.obj"
+},
+{
+  "directory": "E:/Socket programming/File transfer/out/build/GCC 15.1.0 x86_64-w64-mingw32",
+  "command": "E:\\MinGW\\mingw64\\bin\\gcc.exe   -g -o CMakeFiles\\file_reconstructor_test.dir\\error_handling\\error_print.c.obj -c \"E:\\Socket programming\\File transfer\\error_handling\\error_print.c\"",
+  "file": "E:/Socket programming/File transfer/error_handling/error_print.c",
+  "output": "CMakeFiles/file_reconstructor_test.dir/error_handling/error_print.c.obj"
+},
+{
+  "directory": "E:/Socket programming/File transfer/out/build/GCC 15.1.0 x86_64-w64-mingw32",
+  "command": "E:\\MinGW\\mingw64\\bin\\gcc.exe   -g -o CMakeFiles\\file_reconstructor_test.dir\\ring_buffer\\ring_buffer.c.obj -c \"E:\\Socket programming\\File transfer\\ring_buffer\\ring_buffer.c\"",
+  "file": "E:/Socket programming/File transfer/ring_buffer/ring_buffer.c",
+  "output": "CMakeFiles/file_reconstructor_test.dir/ring_buffer/ring_buffer.c.obj"
+},
+{
+  "directory": "E:/Socket programming/File transfer/out/build/GCC 15.1.0 x86_64-w64-mingw32",
+  "command": "E:\\MinGW\\mingw64\\bin\\gcc.exe   -g -o CMakeFiles\\full_e2e_sender_test.dir\\tests\\full_e2e_sender_test.c.obj -c \"E:\\Socket programming\\File transfer\\tests\\full_e2e_sender_test.c\"",
+  "file": "E:/Socket programming/File transfer/tests/full_e2e_sender_test.c",
+  "output": "CMakeFiles/full_e2e_sender_test.dir/tests/full_e2e_sender_test.c.obj"
+},
+{
+  "directory": "E:/Socket programming/File transfer/out/build/GCC 15.1.0 x86_64-w64-mingw32",
+  "command": "E:\\MinGW\\mingw64\\bin\\gcc.exe   -g -o CMakeFiles\\full_e2e_sender_test.dir\\file_reader\\file_reader.c.obj -c \"E:\\Socket programming\\File transfer\\file_reader\\file_reader.c\"",
+  "file": "E:/Socket programming/File transfer/file_reader/file_reader.c",
+  "output": "CMakeFiles/full_e2e_sender_test.dir/file_reader/file_reader.c.obj"
+},
+{
+  "directory": "E:/Socket programming/File transfer/out/build/GCC 15.1.0 x86_64-w64-mingw32",
+  "command": "E:\\MinGW\\mingw64\\bin\\gcc.exe   -g -o CMakeFiles\\full_e2e_sender_test.dir\\error_handling\\error_print.c.obj -c \"E:\\Socket programming\\File transfer\\error_handling\\error_print.c\"",
+  "file": "E:/Socket programming/File transfer/error_handling/error_print.c",
+  "output": "CMakeFiles/full_e2e_sender_test.dir/error_handling/error_print.c.obj"
+},
+{
+  "directory": "E:/Socket programming/File transfer/out/build/GCC 15.1.0 x86_64-w64-mingw32",
+  "command": "E:\\MinGW\\mingw64\\bin\\gcc.exe   -g -o CMakeFiles\\full_e2e_sender_test.dir\\ring_buffer\\ring_buffer.c.obj -c \"E:\\Socket programming\\File transfer\\ring_buffer\\ring_buffer.c\"",
+  "file": "E:/Socket programming/File transfer/ring_buffer/ring_buffer.c",
+  "output": "CMakeFiles/full_e2e_sender_test.dir/ring_buffer/ring_buffer.c.obj"
+},
+{
+  "directory": "E:/Socket programming/File transfer/out/build/GCC 15.1.0 x86_64-w64-mingw32",
+  "command": "E:\\MinGW\\mingw64\\bin\\gcc.exe   -g -o CMakeFiles\\full_e2e_sender_test.dir\\transport\\send_data\\send_data.c.obj -c \"E:\\Socket programming\\File transfer\\transport\\send_data\\send_data.c\"",
+  "file": "E:/Socket programming/File transfer/transport/send_data/send_data.c",
+  "output": "CMakeFiles/full_e2e_sender_test.dir/transport/send_data/send_data.c.obj"
+},
+{
+  "directory": "E:/Socket programming/File transfer/out/build/GCC 15.1.0 x86_64-w64-mingw32",
+  "command": "E:\\MinGW\\mingw64\\bin\\gcc.exe   -g -o CMakeFiles\\full_e2e_receiver_test.dir\\tests\\full_e2e_receiver_test.c.obj -c \"E:\\Socket programming\\File transfer\\tests\\full_e2e_receiver_test.c\"",
+  "file": "E:/Socket programming/File transfer/tests/full_e2e_receiver_test.c",
+  "output": "CMakeFiles/full_e2e_receiver_test.dir/tests/full_e2e_receiver_test.c.obj"
+},
+{
+  "directory": "E:/Socket programming/File transfer/out/build/GCC 15.1.0 x86_64-w64-mingw32",
+  "command": "E:\\MinGW\\mingw64\\bin\\gcc.exe   -g -o CMakeFiles\\full_e2e_receiver_test.dir\\file_reconstructor\\file_reconstructor.c.obj -c \"E:\\Socket programming\\File transfer\\file_reconstructor\\file_reconstructor.c\"",
+  "file": "E:/Socket programming/File transfer/file_reconstructor/file_reconstructor.c",
+  "output": "CMakeFiles/full_e2e_receiver_test.dir/file_reconstructor/file_reconstructor.c.obj"
+},
+{
+  "directory": "E:/Socket programming/File transfer/out/build/GCC 15.1.0 x86_64-w64-mingw32",
+  "command": "E:\\MinGW\\mingw64\\bin\\gcc.exe   -g -o CMakeFiles\\full_e2e_receiver_test.dir\\error_handling\\error_print.c.obj -c \"E:\\Socket programming\\File transfer\\error_handling\\error_print.c\"",
+  "file": "E:/Socket programming/File transfer/error_handling/error_print.c",
+  "output": "CMakeFiles/full_e2e_receiver_test.dir/error_handling/error_print.c.obj"
+},
+{
+  "directory": "E:/Socket programming/File transfer/out/build/GCC 15.1.0 x86_64-w64-mingw32",
+  "command": "E:\\MinGW\\mingw64\\bin\\gcc.exe   -g -o CMakeFiles\\full_e2e_receiver_test.dir\\ring_buffer\\ring_buffer.c.obj -c \"E:\\Socket programming\\File transfer\\ring_buffer\\ring_buffer.c\"",
+  "file": "E:/Socket programming/File transfer/ring_buffer/ring_buffer.c",
+  "output": "CMakeFiles/full_e2e_receiver_test.dir/ring_buffer/ring_buffer.c.obj"
+},
+{
+  "directory": "E:/Socket programming/File transfer/out/build/GCC 15.1.0 x86_64-w64-mingw32",
+  "command": "E:\\MinGW\\mingw64\\bin\\gcc.exe   -g -o CMakeFiles\\full_e2e_receiver_test.dir\\transport\\recv_data\\recv_data.c.obj -c \"E:\\Socket programming\\File transfer\\transport\\recv_data\\recv_data.c\"",
+  "file": "E:/Socket programming/File transfer/transport/recv_data/recv_data.c",
+  "output": "CMakeFiles/full_e2e_receiver_test.dir/transport/recv_data/recv_data.c.obj"
+},
+{
+  "directory": "E:/Socket programming/File transfer/out/build/GCC 15.1.0 x86_64-w64-mingw32",
+  "command": "E:\\MinGW\\mingw64\\bin\\gcc.exe   -g -o CMakeFiles\\file_transfer.dir\\main.c.obj -c \"E:\\Socket programming\\File transfer\\main.c\"",
+  "file": "E:/Socket programming/File transfer/main.c",
+  "output": "CMakeFiles/file_transfer.dir/main.c.obj"
+},
+{
+  "directory": "E:/Socket programming/File transfer/out/build/GCC 15.1.0 x86_64-w64-mingw32",
+  "command": "E:\\MinGW\\mingw64\\bin\\gcc.exe   -g -o CMakeFiles\\file_transfer.dir\\ring_buffer\\ring_buffer.c.obj -c \"E:\\Socket programming\\File transfer\\ring_buffer\\ring_buffer.c\"",
+  "file": "E:/Socket programming/File transfer/ring_buffer/ring_buffer.c",
+  "output": "CMakeFiles/file_transfer.dir/ring_buffer/ring_buffer.c.obj"
+},
+{
+  "directory": "E:/Socket programming/File transfer/out/build/GCC 15.1.0 x86_64-w64-mingw32",
+  "command": "E:\\MinGW\\mingw64\\bin\\gcc.exe   -g -o CMakeFiles\\file_transfer.dir\\file_reader\\file_reader.c.obj -c \"E:\\Socket programming\\File transfer\\file_reader\\file_reader.c\"",
+  "file": "E:/Socket programming/File transfer/file_reader/file_reader.c",
+  "output": "CMakeFiles/file_transfer.dir/file_reader/file_reader.c.obj"
+},
+{
+  "directory": "E:/Socket programming/File transfer/out/build/GCC 15.1.0 x86_64-w64-mingw32",
+  "command": "E:\\MinGW\\mingw64\\bin\\gcc.exe   -g -o CMakeFiles\\file_transfer.dir\\file_reconstructor\\file_reconstructor.c.obj -c \"E:\\Socket programming\\File transfer\\file_reconstructor\\file_reconstructor.c\"",
+  "file": "E:/Socket programming/File transfer/file_reconstructor/file_reconstructor.c",
+  "output": "CMakeFiles/file_transfer.dir/file_reconstructor/file_reconstructor.c.obj"
+},
+{
+  "directory": "E:/Socket programming/File transfer/out/build/GCC 15.1.0 x86_64-w64-mingw32",
+  "command": "E:\\MinGW\\mingw64\\bin\\gcc.exe   -g -o CMakeFiles\\file_transfer.dir\\transport\\send_data\\send_data.c.obj -c \"E:\\Socket programming\\File transfer\\transport\\send_data\\send_data.c\"",
+  "file": "E:/Socket programming/File transfer/transport/send_data/send_data.c",
+  "output": "CMakeFiles/file_transfer.dir/transport/send_data/send_data.c.obj"
+},
+{
+  "directory": "E:/Socket programming/File transfer/out/build/GCC 15.1.0 x86_64-w64-mingw32",
+  "command": "E:\\MinGW\\mingw64\\bin\\gcc.exe   -g -o CMakeFiles\\file_transfer.dir\\transport\\recv_data\\recv_data.c.obj -c \"E:\\Socket programming\\File transfer\\transport\\recv_data\\recv_data.c\"",
+  "file": "E:/Socket programming/File transfer/transport/recv_data/recv_data.c",
+  "output": "CMakeFiles/file_transfer.dir/transport/recv_data/recv_data.c.obj"
+},
+{
+  "directory": "E:/Socket programming/File transfer/out/build/GCC 15.1.0 x86_64-w64-mingw32",
+  "command": "E:\\MinGW\\mingw64\\bin\\gcc.exe   -g -o CMakeFiles\\file_transfer.dir\\transport\\connection\\connection_init.c.obj -c \"E:\\Socket programming\\File transfer\\transport\\connection\\connection_init.c\"",
+  "file": "E:/Socket programming/File transfer/transport/connection/connection_init.c",
+  "output": "CMakeFiles/file_transfer.dir/transport/connection/connection_init.c.obj"
+},
+{
+  "directory": "E:/Socket programming/File transfer/out/build/GCC 15.1.0 x86_64-w64-mingw32",
+  "command": "E:\\MinGW\\mingw64\\bin\\gcc.exe   -g -o CMakeFiles\\file_transfer.dir\\error_handling\\error_print.c.obj -c \"E:\\Socket programming\\File transfer\\error_handling\\error_print.c\"",
+  "file": "E:/Socket programming/File transfer/error_handling/error_print.c",
+  "output": "CMakeFiles/file_transfer.dir/error_handling/error_print.c.obj"
+}
+]

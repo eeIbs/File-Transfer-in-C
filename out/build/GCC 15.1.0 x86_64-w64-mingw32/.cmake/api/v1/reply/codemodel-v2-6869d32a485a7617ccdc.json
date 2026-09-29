@@ -1,0 +1,106 @@
+{
+	"configurations" : 
+	[
+		{
+			"abstractTargets" : [],
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"jsonFile" : "directory-.-Debug-f040eec181a89de70dbe.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.10.0"
+					},
+					"projectIndex" : 0,
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3,
+						4,
+						5
+					]
+				}
+			],
+			"name" : "Debug",
+			"projects" : 
+			[
+				{
+					"directoryIndexes" : 
+					[
+						0
+					],
+					"name" : "Socket-File-Transfer",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3,
+						4,
+						5
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 0,
+					"id" : "file_reader_test::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-file_reader_test-Debug-cc8c310785bb4f0e33eb.json",
+					"name" : "file_reader_test",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "file_reconstructor_test::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-file_reconstructor_test-Debug-e52378df7f0e647f7d98.json",
+					"name" : "file_reconstructor_test",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "file_transfer::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-file_transfer-Debug-ed999b1ae033d685a679.json",
+					"name" : "file_transfer",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "full_e2e_receiver_test::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-full_e2e_receiver_test-Debug-4af0c4219a045338e6c3.json",
+					"name" : "full_e2e_receiver_test",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "full_e2e_sender_test::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-full_e2e_sender_test-Debug-8810098f1f3679713364.json",
+					"name" : "full_e2e_sender_test",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "recv_data_test::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-recv_data_test-Debug-7d3d803c4723821b9830.json",
+					"name" : "recv_data_test",
+					"projectIndex" : 0
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "E:/Socket programming/File transfer/out/build/GCC 15.1.0 x86_64-w64-mingw32",
+		"source" : "E:/Socket programming/File transfer"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 10
+	}
+}

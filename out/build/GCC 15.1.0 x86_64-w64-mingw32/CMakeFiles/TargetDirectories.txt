@@ -1,0 +1,8 @@
+E:/Socket programming/File transfer/out/build/GCC 15.1.0 x86_64-w64-mingw32/CMakeFiles/recv_data_test.dir
+E:/Socket programming/File transfer/out/build/GCC 15.1.0 x86_64-w64-mingw32/CMakeFiles/file_reader_test.dir
+E:/Socket programming/File transfer/out/build/GCC 15.1.0 x86_64-w64-mingw32/CMakeFiles/file_reconstructor_test.dir
+E:/Socket programming/File transfer/out/build/GCC 15.1.0 x86_64-w64-mingw32/CMakeFiles/full_e2e_sender_test.dir
+E:/Socket programming/File transfer/out/build/GCC 15.1.0 x86_64-w64-mingw32/CMakeFiles/full_e2e_receiver_test.dir
+E:/Socket programming/File transfer/out/build/GCC 15.1.0 x86_64-w64-mingw32/CMakeFiles/file_transfer.dir
+E:/Socket programming/File transfer/out/build/GCC 15.1.0 x86_64-w64-mingw32/CMakeFiles/edit_cache.dir
+E:/Socket programming/File transfer/out/build/GCC 15.1.0 x86_64-w64-mingw32/CMakeFiles/rebuild_cache.dir
