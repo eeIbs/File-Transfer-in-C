@@ -1,3 +1,0 @@
-"C:\Program Files\CMake\bin\cmake.exe" -E rm -f CMakeFiles\recv_data_test.dir/objects.a
-E:\MinGW\mingw64\bin\ar.exe qc CMakeFiles\recv_data_test.dir/objects.a @CMakeFiles\recv_data_test.dir\objects1.rsp
-E:\MinGW\mingw64\bin\gcc.exe -g -Wl,--whole-archive CMakeFiles\recv_data_test.dir/objects.a -Wl,--no-whole-archive -o recv_data_test.exe -Wl,--out-implib,librecv_data_test.dll.a -Wl,--major-image-version,0,--minor-image-version,0 @CMakeFiles\recv_data_test.dir\linkLibs.rsp
