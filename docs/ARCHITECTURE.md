@@ -1,4 +1,6 @@
-### A multithreaded file-transfer system over TCP, written in C on Winsock2, utilizing producer-consumer pipelines and a bounded ring buffer which handles backpressure.
+#  A Multithreaded File-Transfer System in C
+
+A multithreaded file-transfer system over TCP, written in C on Winsock2, utilizing producer-consumer pipelines and a bounded ring buffer which handles backpressure.
 
 Core Idea: A single executable that behaves as either end-point and allows files to transfer over TCP while keeping disk I/O separate from network I/O.
 
@@ -13,7 +15,7 @@ flowchart LR
 ```
 
 
-### Sender Side: 
+### Sender Side
 Arrows show which thread calls into which component.
 
 ```mermaid
@@ -32,7 +34,7 @@ flowchart TB
 ```
 
 
-### Receiver Side:
+### Receiver Side
 Arrows show which thread calls into which component.
 
 ```mermaid
@@ -51,7 +53,7 @@ flowchart TB
 ```
 
 
-### Threads and responsibilities:
+### Threads and responsibilities
 
 1. File reader thread:
     
@@ -86,7 +88,7 @@ flowchart TB
 
 4. File reconstructor thread:
 
-    It dequeues messages and rebuilds the file on disk. On file_start_msg it creates/ from the filename and extension, on each file_data_msg it appends the payload, onfile_end_msg it stops.
+    It dequeues messages and rebuilds the file on disk. On file_start_msg it creates file from the filename and extension, on each file_data_msg it appends the payload, on file_end_msg it stops.
 
     Blocks when ring buffer is empty since dequeue waits.
 
@@ -111,7 +113,7 @@ On the receiver, the effect travels all the way back to the sender. A slow disk 
 
 
 
-### Working Sequence
+### Data flow of one transfer
 
 ```mermaid
 sequenceDiagram
@@ -123,3 +125,19 @@ sequenceDiagram
     end
     S->>R: FILE_END_MSG
 ```
+
+### Message types
+1.  START 
+    
+    Carries filename, extension and file size. The receiver creates the file in ./received_files/.
+
+2. DATA
+
+    Up to 4096 payload bytes each, and the last one is usually smaller. The receiver appends each one to the file.
+
+3. END
+
+    No payload (payload_length = 0). It tells the receiver to stop, and the receiver's threads shut down.
+
+### Message framing
+Every message starts with a small header holding msg_type and payload_length. The receiver reads the header first, then reads exactly payload_length more bytes. This is why it works on a byte stream where message boundaries don't exist.
