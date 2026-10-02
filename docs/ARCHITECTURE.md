@@ -6,6 +6,8 @@ Core Idea: A single executable that behaves as either end-point and allows files
 
 Scope: Single file per transfer, Single sender and receiver, No encryption, No pause or resume.
 
+(This document describes the intended design. See the README's Known Issues for where the current code differs.)
+
 
 ```mermaid
 flowchart LR

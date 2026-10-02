@@ -1,6 +1,6 @@
 # A Multithreaded File-Transfer System in C
 
-A multithreaded system for transferring files over TCP made in C, it decouples disk I/O and Network I/O using bounded ring buffers that handle backpressure. Producer-Consumer pipelines are used to separate subsystems cleanly.
+A multithreaded system for transferring files over TCP made in C. It decouples disk I/O and Network I/O using bounded ring buffers that handle backpressure. Producer-Consumer pipelines are used to separate subsystems cleanly.
 
 
 ```mermaid
@@ -34,7 +34,7 @@ flowchart LR
 
 A naive file-transfer system using a looped send and receive cycle has multiple problems
     
-1. Disk I/O and network I/O are coupled, the network sits idle while the disk reads, and the disk sits idle while the network sends. The time per chunk is disk time plus network time, where a pipeline gets it down to roughly the slower of the two.
+1. Disk I/O and network I/O are coupled, the network sits idle while the disk reads, and the disk sits idle while the network sends. The time per chunk is disk time plus network time, where a pipeline should get it down to roughly the slower of the two.
     
 2. Decoupling the stages with an unbounded queue only moves the problem. When one side is faster, the queue grows without limit and memory is exhausted. The system needs a bound that forces the fast side to wait.
 
@@ -65,6 +65,35 @@ See docs/ARCHITECTURE.md for the full design.
 Backpressure is not local to one buffer. It travels from the receiver's disk back to the sender's file reader. A slow disk makes the file reconstructor dequeue more slowly, so the receiver's buffer fills and the recv thread blocks in enqueue and stops calling recv(). The receiver's TCP window then fills, and the sender's send() blocks. That fills the sender's buffer and finally stalls the file reader. Nothing is dropped and memory never grows without bound.
 
 reconstructor slows → receiver buffer full → recv blocks → TCP window full → send blocks → sender buffer full → file reader blocks
+
+
+### Design decisions and trade-offs
+
+**32 slots, 4 KB chunks.** These are reasonable defaults, not tuned values. The chunk size means
+a file never has to fit in memory or in the buffer: it streams through in pieces, so file size and
+memory use are independent. The slot count only bounds how far the fast side can run ahead
+(32 × 4 KB = 128 KB in flight per buffer). I haven't benchmarked other values yet.
+
+**One blocking thread per stage.** I chose this to keep the subsystems cleanly separated and to
+learn how they interact, not because it is the most scalable design. The cost is more threads
+and more context switches than an event loop (`select`, IOCP) would use. For one
+connection and one file that cost is negligible. It would matter with many concurrent
+transfers, and an event-driven design would be the better fit there.
+
+**Mutex and two condition variables.** The ring buffer needs to be safe
+under concurrent access and to block producers and consumers instead of failing or spinning.
+A lock with `not_full` and `not_empty` condition variables does that simply and correctly.
+
+**Length-prefixed framing.** Every message carries its payload length in a fixed-size header.
+I took this from a packet sniffer I wrote earlier, where I wrote parsers for several EtherTypes
+and followed the same principle: read the fixed header, learn the length, read exactly that
+many bytes. It is simple, it handles binary payloads without escaping, and the receiver always
+knows how much to read. Delimiter-based framing would need escaping, because file data can contain any byte.
+
+**What the bound does not give you.** Bounding the buffers caps memory and propagates
+backpressure, but it does not propagate failure. If one side dies, the other side's threads
+can still block forever on a full or empty buffer. This is why clean shutdown is the top
+priority in the roadmap.
 
 
 ### Systems concepts covered
