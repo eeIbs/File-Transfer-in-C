@@ -152,9 +152,6 @@ hide them.
 - Completion flags (`FIN`) are not initialized in `main` and are not atomic.
 
 **Memory management**
-- Message ownership passes to the consumer by design, but not every path frees the message.
-  Some error paths and the END message leak, and the send thread does not yet free messages
-  after sending.
 - Ring buffer synchronization objects are not destroyed on exit.
 
 **Transport**
