@@ -21,7 +21,12 @@ DWORD WINAPI send_thread(LPVOID thread_args) {
             error_printer(SEND_DATA_ERR, "send_data() function failed.\n");
             ctx->FIN = true;
         }
+
+        free(raw_msg);
+
     }
+
+    return EXIT_SUCCESS;
 
 }
 

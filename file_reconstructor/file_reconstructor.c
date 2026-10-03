@@ -40,8 +40,9 @@ int reconstruct_file(ring_buffer *ring_buffer, reconstructor_ctx *ctx) {
             switch (pkt_hdr->msg_type) {
                 
                 default:
-                
+
                     error_printer(FILE_WRITER_FAILURE_MSG, "Unsupported packet type was received!\n");
+                    free(raw_msg);
                     break;
 
                 case FILE_START_MSG:
@@ -60,6 +61,7 @@ int reconstruct_file(ring_buffer *ring_buffer, reconstructor_ctx *ctx) {
 
                     if (file_ptr == NULL) {
                         error_printer(FILE_WRITER_FAILURE_MSG, "File could not be opened!\n");
+                        free(raw_msg);
                         return -1;
                     }
                     
@@ -78,6 +80,7 @@ int reconstruct_file(ring_buffer *ring_buffer, reconstructor_ctx *ctx) {
 
                     if (file_ptr == NULL) {
                         error_printer(FILE_WRITER_FAILURE_MSG, "File could not be opened!\n");
+                        free(raw_msg);
                         return -1;
                     }
 
@@ -88,6 +91,7 @@ int reconstruct_file(ring_buffer *ring_buffer, reconstructor_ctx *ctx) {
                     
                     if (bytes_written != data_msg->msg_header.payload_length) {
                         error_printer(FILE_WRITER_FAILURE_MSG, "Failed to write complete payload.\n");
+                        free(raw_msg);
                         fclose(file_ptr);
                         return -1;
                     }
@@ -103,6 +107,7 @@ int reconstruct_file(ring_buffer *ring_buffer, reconstructor_ctx *ctx) {
                 {
                     printf("reconstructor found FILE_END_MSG\n");
                     ctx->FIN = true;
+                    free(raw_msg);
                     break;
                 }
 

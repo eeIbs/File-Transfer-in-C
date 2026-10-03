@@ -38,6 +38,7 @@ int init_connection(connection_context *ctx) {
             if(ctx->sock == INVALID_SOCKET){
                 error_printer(INITIATE_CONNECTION_ERR, "socket() failed.");
                 printf("error: %d\n", WSAGetLastError());
+                WSACleanup();
                 return -1;
             }
 

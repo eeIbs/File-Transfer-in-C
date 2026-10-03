@@ -127,7 +127,7 @@ int recv_data(recv_context *recv_ctx) {
 
             // Ensure length does not exceed max payload size.
             if (msg_hdr.payload_length > MAX_PAYLOAD_SIZE) {
-                error_printer(RECV_DATA_FAILURE_MSG, "payload_length exceeds predefined max payload size");
+                error_printer(RECV_DATA_FAILURE_MSG, "payload_length exceeds predefined max payload size\n");
                 return -1;
             }
 
@@ -174,9 +174,9 @@ int recv_data(recv_context *recv_ctx) {
 
         case FILE_END_MSG: {
 
-            // Ensure length does not exceed max payload size.
-            if (msg_hdr.payload_length > MAX_PAYLOAD_SIZE) {
-                error_printer(RECV_DATA_FAILURE_MSG, "payload_length exceeds predefined max payload size");
+            // Ensure payload_length is exactly 0, sender will always send 0.
+            if (msg_hdr.payload_length != 0) {
+                error_printer(RECV_DATA_FAILURE_MSG, "payload_length must be 0\n");
                 return -1;
             }
 
@@ -184,6 +184,10 @@ int recv_data(recv_context *recv_ctx) {
             recvd_msg.msg_header = msg_hdr;
 
             recvd_data_msg *data_pkt_cpy = malloc(sizeof(*data_pkt_cpy));
+            if (data_pkt_cpy == NULL) {
+                error_printer(RECV_DATA_FAILURE_MSG, "Memory allocation for received end packet failed before enqueue!\n");
+                return -1;
+            }
 
             *data_pkt_cpy = recvd_msg;
 

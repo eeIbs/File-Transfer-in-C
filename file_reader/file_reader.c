@@ -53,6 +53,8 @@ DWORD WINAPI file_reader_thread(LPVOID thread_args) {
 
     file_reader(ctx);
 
+    return EXIT_SUCCESS;
+
 }
 
 // const is used with file_reader_ctx as we do not want builder func to modify it. 
@@ -284,6 +286,9 @@ int file_reader(file_reader_ctx *reader_context) {
             
         fclose(fptr);
         closedir(send_dir);
+
+        free(start_msg);
+
         return -1;
 
     }

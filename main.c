@@ -108,6 +108,7 @@ int main() {
 
                 if(init_connection(&connection_ctx) != 0) {
                     error_printer("Connection initiation failed.\n", "init_connection()");
+                    closedir(send_dir);
                     return EXIT_FAILURE;
                 }
 
@@ -151,8 +152,14 @@ int main() {
                 WaitForSingleObject(send_thread_handle, INFINITE);
 
                 printf("Sender finished!\n");
+
+                CloseHandle(reader_thread_handle);
+                CloseHandle(send_thread_handle);
+
                 closesocket(send_socket);
                 WSACleanup();
+
+                closedir(send_dir);
 
                 return EXIT_SUCCESS;
 
@@ -233,6 +240,10 @@ int main() {
 
             printf("Receiver finished.\n");
             printf("Received file is in ./received_files \n");
+
+            CloseHandle(recv_thread_handle);
+            CloseHandle(recons_thread_handle);
+
             closesocket(recv_connection_ctx.sock);
             WSACleanup();
 
