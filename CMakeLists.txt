@@ -1,33 +1,6 @@
 cmake_minimum_required(VERSION 3.10.0)
 project(Socket-File-Transfer VERSION 0.1.0 LANGUAGES C)
 
-#[[
-add_executable(Socket-File-Transfer
-    
-    #main.c
-
-    error_handling/error_print.c
-
-    ring_buffer/ring_buffer.c
-
-    file_reader/file_reader.c
-
-    file_reconstructor/file_reconstructor.c
-
-    transport/send_data/send_data.c
-    transport/recv_data/recv_data.c
-
-    tests/recv_data_test.c
-    common.h
-)
-
-target_link_libraries(Socket-File-Transfer
-
-    ws2_32
-
-)
-]]
-
 
 # For recv_data_test
 add_executable(recv_data_test
@@ -78,6 +51,16 @@ add_executable(full_e2e_receiver_test
     transport/recv_data/recv_data.c
 )
 target_link_libraries(full_e2e_receiver_test PRIVATE ws2_32)
+
+# For disk_io_bench.c (disk usage benchmark)
+add_executable(disk_io_bench
+    tests/disk_io_bench.c
+    file_reader/file_reader.c
+    file_reconstructor/file_reconstructor.c
+    ring_buffer/ring_buffer.c
+    error_handling/error_print.c
+)
+target_link_libraries(disk_io_bench PRIVATE ws2_32)
 
 # For main file_transfer
 add_executable(file_transfer

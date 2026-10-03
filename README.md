@@ -96,6 +96,42 @@ can still block forever on a full or empty buffer. This is why clean shutdown is
 priority in the roadmap.
 
 
+### Benchmarks
+
+#### Disk I/O pipeline (`tests/disk_io_bench.c`)
+
+This benchmark isolates the disk side of the system. It runs the file reader thread and the
+file reconstructor over a single ring buffer, with no network involved. The reader takes the
+first file in ./file_to_send/, so bench.bin must be the only file there (delete the dummy
+file first). The reconstructor writes ./received_files/bench.bin, which is the name the final
+size check looks for. The timer wraps the reconstructor loop, from the first dequeue to the
+FIN message, and throughput is `file size / elapsed time` in decimal MB/s (1 MB = 1,000,000
+bytes). The test then compares the sent and received sizes and prints `PASS` or `FAIL`.
+
+Because the reader and reconstructor run concurrently, the result is limited by the slower
+stage. In practice that is the reconstructor, which is reopening the output file for every
+chunk.
+
+**Setup:** 268,435,456-byte (256 MiB) `.bin` file, 4 KB chunks, 32-slot ring buffer, 
+Intel i5-11400F, Toshiba HDWD110 SATA HDD, Windows 11.
+
+To create a zero-filled file of 256 MiB:
+```powershell
+fsutil file createnew file_to_send\bench.bin 268435456
+```
+
+| Version | Output file handling | Throughput (MB/s) |
+|---|---|---|
+| Baseline | `fopen`/`fclose` per 4 KB chunk | 22–27 typical, 19.6 worst run |
+| After fix | Work in progress | Work in progress |
+
+**Results:**
+Opening the file again and again with `fopen()` called for every chunk, throughput ranged from 19.6 to 27 MB/s across repeated runs.
+
+**Caveats:** this measures the disk pipeline only, not the network. Numbers vary between
+runs because of OS file caching, and I did not control for it.
+
+
 ### Systems concepts covered
 - Producer-consumer pipelines.
 - Bounded ring buffer with lock and condition variables. (blocking, not polling)
@@ -116,9 +152,16 @@ cmake --build --preset "GCC 15.1.0 x86_64-w64-mingw32"
 
 The build produces a single executable, file_transfer, which acts as either end of the transfer. It is chosen at runtime from a menu. Run it from the project root, because the ./file_to_send/ and ./received_files/ paths are relative.
 
+**First-time setup:** `file_to_send/` and `received_files/` each contain a small dummy file,
+because git doesn't track empty directories and they wouldn't exist after cloning otherwise.
+Delete the dummy files after you clone, then run your own test.
+
 Receiving: start the program, choose 2, and optionally enter a bind address (default 127.0.0.1). It listens on port 27015 and waits for a sender.
 
-Sending: put exactly one file in ./file_to_send/, start the program, choose 1, confirm the file, then enter the receiver's IP and port. The received file appears in ./received_files/.
+Sending: put the file you want to send in ./file_to_send/, start the program, and choose 1.
+The program shows the name of the first file it finds and asks `Continue to send? [y/n]`.
+Enter `y` to continue, then enter the receiver's IP and port. Only one file is sent per run,
+so keep a single file in ./file_to_send/. The received file appears in ./received_files/.
 
 
 # Project layout
@@ -170,7 +213,8 @@ hide them.
 ### Roadmap
 - [ ] Clean shutdown: a shared cancellation flag plus waking blocked threads, so any failure
       exits both ends cleanly
-- [ ] Audit and fix every allocation and free path, then verify with a leak checker
+- [x] Audit and fix every allocation and free path, then verify with a leak checker
+- [ ] Add ring_buffer_destroy and call it on both ends at shutdown
 - [ ] Loop `send()` until all bytes are sent
 - [ ] Fixed-width, packed, network-byte-order header with bounds checks and filename sanitizing
 - [ ] SHA-256 checksum verified by the receiver
