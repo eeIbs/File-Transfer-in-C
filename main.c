@@ -161,6 +161,8 @@ int main() {
 
                 closedir(send_dir);
 
+                ring_buffer_destroy(&send_rb);
+
                 return EXIT_SUCCESS;
 
             }
@@ -246,6 +248,8 @@ int main() {
 
             closesocket(recv_connection_ctx.sock);
             WSACleanup();
+
+            ring_buffer_destroy(&recv_rb);
 
             return EXIT_SUCCESS;
 

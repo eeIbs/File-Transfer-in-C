@@ -17,8 +17,11 @@ typedef struct{
     CONDITION_VARIABLE not_empty;    
     CRITICAL_SECTION lock;
 
+    bool producer_failure;
+
 } ring_buffer;
 
+void ring_buffer_destroy(ring_buffer* q);
 
 void ring_buffer_init(ring_buffer* q);
 
@@ -29,6 +32,8 @@ bool isFull(ring_buffer* q);
 void enqueue(ring_buffer *q, void *data_pointer);
 
 void* dequeue(ring_buffer *q);
+
+void ring_buffer_producer_failure(ring_buffer *q);
 
 
 #endif

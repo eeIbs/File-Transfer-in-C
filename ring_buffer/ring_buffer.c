@@ -51,9 +51,8 @@
 
 #include <stdio.h>
 #include <stdbool.h>
+#include <stdlib.h>
 #include "ring_buffer.h"
-
-#include "../common.h"
 
 
 void ring_buffer_init(ring_buffer* q){
@@ -64,7 +63,24 @@ void ring_buffer_init(ring_buffer* q){
     InitializeConditionVariable(&q->not_empty);
     InitializeConditionVariable(&q->not_full);
     InitializeCriticalSection(&q->lock);
+
+    q->producer_failure = false;
+
 }
+
+
+// Frees any items that are still in the queue, then releases the lock.
+// destroy function must only be called when no thread is using the ring buffer.
+void ring_buffer_destroy(ring_buffer* q) {
+    
+    while(!isEmpty(q)) {
+        free(dequeue(q));
+    }
+
+    DeleteCriticalSection(&q->lock);
+
+}
+
 
 bool isEmpty(ring_buffer* q){
 
@@ -87,7 +103,7 @@ bool isFull(ring_buffer* q){
  *
  * enqueue() never copies the object.
  *
- * Front is incremented because oldest element is discarded if full.
+ * Front is incremented.
  */
 void enqueue(ring_buffer *q, void *data_pointer){
 
@@ -113,20 +129,23 @@ void enqueue(ring_buffer *q, void *data_pointer){
 
 /*
  * Ownership of the pointed-to object is transferred to the consumer.
- *
- * enqueue() never copies the object.
  */
 void* dequeue(ring_buffer *q){
 
     EnterCriticalSection(&q->lock);
 
-    while(isEmpty(q)){
+    while(isEmpty(q) && !q->producer_failure){
 
         SleepConditionVariableCS(
             &q->not_empty, 
             &q->lock, 
             INFINITE);
 
+    }
+
+    if (q->producer_failure && isEmpty(q)) {
+        LeaveCriticalSection(&q->lock);
+        return NULL;
     }
     
     void *data = q->event_pointer_buffer[(q->front)%(QUEUE_CAPACITY)];
@@ -137,5 +156,17 @@ void* dequeue(ring_buffer *q){
     LeaveCriticalSection(&q->lock);
 
     return data;
+
+}
+
+void ring_buffer_producer_failure(ring_buffer *q) {
+    
+    EnterCriticalSection(&q->lock);
+    q->producer_failure = true;
+
+    WakeAllConditionVariable(&q->not_empty);
+    WakeAllConditionVariable(&q->not_full);
+
+    LeaveCriticalSection(&q->lock);
 
 }
