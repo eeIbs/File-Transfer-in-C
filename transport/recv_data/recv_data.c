@@ -15,8 +15,13 @@ DWORD WINAPI recv_thread(LPVOID thread_arg) {
     
     while (recv_ctx->FIN == false) {
         if (recv_data(recv_ctx) != 0) {
-            error_printer(RECV_DATA_FAILURE_MSG, "recv_data thread failed!\n");
+
+            error_printer(RECV_DATA_FAILURE_MSG, "recv_data function failed!\n");
             recv_ctx->FIN = true;
+
+            ring_buffer_producer_failure(recv_ctx->ring_buffer);
+
+            return -1;
         }
     }
 

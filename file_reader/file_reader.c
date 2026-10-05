@@ -51,7 +51,16 @@ DWORD WINAPI file_reader_thread(LPVOID thread_args) {
 
     file_reader_ctx *ctx = (file_reader_ctx *)thread_args;
 
-    file_reader(ctx);
+    if (file_reader(ctx) != 0) {
+
+        error_printer(FILE_READER_ERR, "file_reader() function failed.\n");
+
+        ctx->FIN = true;
+
+        ring_buffer_producer_failure(ctx->ring_buffer);
+        
+        return EXIT_FAILURE;
+    }
 
     return EXIT_SUCCESS;
 

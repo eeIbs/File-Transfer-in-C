@@ -73,8 +73,11 @@ void ring_buffer_init(ring_buffer* q){
 // destroy function must only be called when no thread is using the ring buffer.
 void ring_buffer_destroy(ring_buffer* q) {
     
+    void *trash;
+
     while(!isEmpty(q)) {
-        free(dequeue(q));
+        dequeue(q, &trash);
+        free(trash);
     }
 
     DeleteCriticalSection(&q->lock);
@@ -130,7 +133,7 @@ void enqueue(ring_buffer *q, void *data_pointer){
 /*
  * Ownership of the pointed-to object is transferred to the consumer.
  */
-void* dequeue(ring_buffer *q){
+rb_dequeue_status dequeue(ring_buffer *q, void **output){
 
     EnterCriticalSection(&q->lock);
 
@@ -145,17 +148,19 @@ void* dequeue(ring_buffer *q){
 
     if (q->producer_failure && isEmpty(q)) {
         LeaveCriticalSection(&q->lock);
-        return NULL;
+        return DEQUEUE_PROD_FAIL;
     }
     
     void *data = q->event_pointer_buffer[(q->front)%(QUEUE_CAPACITY)];
     q->front = (q->front + 1)%QUEUE_CAPACITY;
 
+    *output = data;
+
     WakeConditionVariable(&q->not_full);
 
     LeaveCriticalSection(&q->lock);
 
-    return data;
+    return DEQUEUE_OK;
 
 }
 

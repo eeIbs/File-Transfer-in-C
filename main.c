@@ -101,7 +101,7 @@ int main() {
                 scanf("%d", &recvr_port);
                 
                 // Create and populate connection_ctx.
-                connection_context connection_ctx;
+                connection_context connection_ctx = {0};
                 strcpy(connection_ctx.connection_address, recvr_address);
                 connection_ctx.connection_port = recvr_port;
                 connection_ctx.endpoint_type = 0;
@@ -121,7 +121,7 @@ int main() {
                 ring_buffer send_rb;
                 ring_buffer_init(&send_rb);
 
-                file_reader_ctx reader_ctx;
+                file_reader_ctx reader_ctx = {0};
                 reader_ctx.ring_buffer = &send_rb;
 
                 HANDLE reader_thread_handle = CreateThread(
@@ -133,7 +133,7 @@ int main() {
                     NULL
                 );
 
-                send_context send_ctx;
+                send_context send_ctx = {0};
 
                 send_ctx.connection_socket = send_socket;
                 send_ctx.ring_buffer = &send_rb;
@@ -178,7 +178,7 @@ int main() {
         {
             printf("Initializing receiver.\n");
             
-            connection_context recv_connection_ctx;
+            connection_context recv_connection_ctx = {0};
 
             recv_connection_ctx.endpoint_type = 1;
             
@@ -206,7 +206,7 @@ int main() {
             ring_buffer recv_rb;
             ring_buffer_init(&recv_rb);
                 
-            recv_context recv_ctx;
+            recv_context recv_ctx = {0};
 
             // Populate recv_ctx.
             recv_ctx.connection_socket = recv_connection_ctx.sock;
@@ -224,7 +224,7 @@ int main() {
                 NULL
             );
 
-            reconstructor_ctx recons_ctx;
+            reconstructor_ctx recons_ctx = {0};
             recons_ctx.ring_buffer = &recv_rb;
 
             // File reconstructor thread.
