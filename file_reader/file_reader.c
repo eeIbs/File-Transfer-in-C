@@ -51,7 +51,17 @@ DWORD WINAPI file_reader_thread(LPVOID thread_args) {
 
     file_reader_ctx *ctx = (file_reader_ctx *)thread_args;
 
-    if (file_reader(ctx) != 0) {
+    reader_status status = file_reader(ctx);
+
+    if (status != READER_OK) {
+
+        if (status == READER_CNSMR_FAILURE) {
+            error_printer(FILE_READER_ERR, "file_reader_thread forcefully stopped as send_thread failed.\n");
+            ctx->FIN = true;
+
+            return EXIT_FAILURE;
+
+        }
 
         error_printer(FILE_READER_ERR, "file_reader() function failed.\n");
 
@@ -143,7 +153,7 @@ int build_end_msg(const file_reader_ctx *reader_context, file_end_msg *end_msg) 
  * 2. build_data_msg() (loops through until end of file is reached)
  * 3. build_end_msg() (NOT YET IMPLEMENTED)
  */
-int file_reader(file_reader_ctx *reader_context) {
+reader_status file_reader(file_reader_ctx *reader_context) {
 
     ring_buffer *rb = reader_context->ring_buffer;
 
@@ -152,7 +162,7 @@ int file_reader(file_reader_ctx *reader_context) {
 
     if (send_dir == NULL) {
         error_printer(FILL_START_MSG_ERR, "Unable to open file_to_send directory!\n");
-        return 1;
+        return READER_FAILURE;
     }
 
     struct dirent *send_file;
@@ -171,7 +181,7 @@ int file_reader(file_reader_ctx *reader_context) {
     if (send_file == NULL) {
         error_printer(FILL_START_MSG_ERR, "No files to send found!\n");
         closedir(send_dir);
-        return -1;
+        return READER_FAILURE;
     }
 
     const char *file_name_ext = send_file->d_name;
@@ -182,7 +192,7 @@ int file_reader(file_reader_ctx *reader_context) {
     if(dot == NULL || dot == file_name_ext) {
         error_printer(FILL_START_MSG_ERR, "Unable to find file extension!\n");
         closedir(send_dir);
-        return -1;
+        return READER_FAILURE;
     }
 
     const char *file_ext_ptr = dot + 1;
@@ -242,7 +252,7 @@ int file_reader(file_reader_ctx *reader_context) {
         error_printer(FILL_START_MSG_ERR, "File with given filename could not be opened!\n");
         
         closedir(send_dir);
-        return -1;
+        return READER_FAILURE;
     }
 
     // Handle error in case seek fails.
@@ -251,7 +261,7 @@ int file_reader(file_reader_ctx *reader_context) {
         
         fclose(fptr);
         closedir(send_dir);
-        return -1;
+        return READER_FAILURE;
     }
 
     // Get current position.
@@ -261,7 +271,7 @@ int file_reader(file_reader_ctx *reader_context) {
         
         fclose(fptr);
         closedir(send_dir);
-        return -1;
+        return READER_FAILURE;
     }
 
     reader_context->filesize = (uint64_t)file_size;
@@ -272,7 +282,7 @@ int file_reader(file_reader_ctx *reader_context) {
         
         fclose(fptr);
         closedir(send_dir);
-        return -1;
+        return READER_FAILURE;
     }
 
     // Put file pointer into reader_context->
@@ -287,7 +297,7 @@ int file_reader(file_reader_ctx *reader_context) {
         fclose(fptr);
         closedir(send_dir);
         free(start_msg);
-        return -1;
+        return READER_FAILURE;
     }
 
     
@@ -298,12 +308,18 @@ int file_reader(file_reader_ctx *reader_context) {
 
         free(start_msg);
 
-        return -1;
+        return READER_FAILURE;
 
     }
 
-    enqueue(rb, start_msg);
-    
+    rb_enqueue_status enq_status = enqueue(rb, start_msg);
+
+    if (enq_status == ENQUEUE_CNSMR_FAIL) {
+        fclose(fptr);
+        closedir(send_dir);
+        free(start_msg);
+        return READER_CNSMR_FAILURE;
+    }
 
     /*
     * Now file_reader reads the contents of the file and loops over build_data_msg.
@@ -321,7 +337,7 @@ int file_reader(file_reader_ctx *reader_context) {
 
             fclose(fptr);
             closedir(send_dir);
-            return -1;
+            return READER_FAILURE;
         }
 
         size_t bytes_read;
@@ -334,7 +350,7 @@ int file_reader(file_reader_ctx *reader_context) {
             fclose(fptr);
             closedir(send_dir);
             free(data_msg);
-            return -1;
+            return READER_FAILURE;
 
         }
 
@@ -344,7 +360,16 @@ int file_reader(file_reader_ctx *reader_context) {
         }
 
         total_bytes_framed += bytes_read;
-        enqueue(rb, data_msg);
+
+        rb_enqueue_status enq_status = enqueue(rb, data_msg);
+
+        if (enq_status == ENQUEUE_CNSMR_FAIL) {
+            fclose(fptr);
+            closedir(send_dir);
+            free(data_msg);
+            return READER_CNSMR_FAILURE;
+        }
+
         
     }
     while (total_bytes_framed < reader_context->filesize);
@@ -357,7 +382,7 @@ int file_reader(file_reader_ctx *reader_context) {
 
         fclose(fptr);
         closedir(send_dir);
-        return -1;
+        return READER_FAILURE;
 
     }
 
@@ -369,17 +394,25 @@ int file_reader(file_reader_ctx *reader_context) {
         fclose(fptr);
         closedir(send_dir);
         free(end_msg);
-        return -1;
+        return READER_FAILURE;
 
     }
 
     reader_context->FIN = true;
 
-    enqueue(rb, end_msg);
+
+    rb_enqueue_status enq_status = enqueue(rb, end_msg);
+
+    if (enq_status == ENQUEUE_CNSMR_FAIL) {
+        fclose(fptr);
+        closedir(send_dir);
+        free(end_msg);
+        return READER_CNSMR_FAILURE;
+    }
 
     fclose(fptr);
 
     closedir(send_dir);
 
-    return 0;
+    return READER_OK;
 }

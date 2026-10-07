@@ -19,13 +19,16 @@ DWORD WINAPI send_thread(LPVOID thread_args) {
         
         rb_dequeue_status dq_status = dequeue(ctx->ring_buffer, &raw_msg);
 
-        if (dq_status == DEQUEUE_PROD_FAIL) {
+        if (dq_status == DEQUEUE_PRDCR_FAIL) {
             error_printer(SEND_DATA_ERR, "Producer thread failed, entire file might not have sent.\n");
-            return -1;
+            return EXIT_FAILURE;
         }
         
         if (send_data(raw_msg, ctx) != 0) {
             error_printer(SEND_DATA_ERR, "send_data() function failed.\n");
+
+            ring_buffer_consumer_failure(ctx->ring_buffer);
+
             ctx->FIN = true;
         }
 

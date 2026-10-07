@@ -90,10 +90,16 @@ and followed the same principle: read the fixed header, learn the length, read e
 many bytes. It is simple, it handles binary payloads without escaping, and the receiver always
 knows how much to read. Delimiter-based framing would need escaping, because file data can contain any byte.
 
-**What the bound does not give you.** Bounding the buffers caps memory and propagates
-backpressure, but it does not propagate failure. If one side dies, the other side's threads
-can still block forever on a full or empty buffer. This is why clean shutdown is the top
-priority in the roadmap.
+**What the bound gives you, and what it doesn't.**
+Bounding the buffers caps memory and propagates backpressure. The ring buffer also propagates
+failure between the two threads that share it.
+If a consumer fails, ring_buffer_consumer_failure()
+wakes every blocked thread, and the producer's enqueue() returns ENQUEUE_CNSMR_FAIL instead of
+blocking on a full queue.
+If a producer fails, ring_buffer_producer_failure() makes dequeue() return DEQUEUE_PRDCR_FAIL
+once the queue has drained.
+Failure still does not cross the network. If the peer machine dies, local threads can still block
+in recv(), so clean shutdown stays the top priority in the roadmap.
 
 
 ### Benchmarks
@@ -187,12 +193,13 @@ hide them.
 ### Known issues
 
 **Shutdown and error handling** (top priority)
-- If one side disconnects or fails mid-transfer, the other side's threads can block forever
-  on an empty or full ring buffer, so the process may not exit. There is no cancellation path
-  that wakes blocked threads.
-- A thread that hits an error does not reliably signal the others, so they can keep running
-  against state `main` is already tearing down.
-- Completion flags (`FIN`) are not initialized in `main` and are not atomic.
+- Failure propagates through each ring buffer, but not across the network. If the remote side
+disconnects, a local thread blocked in recv() is only released when the socket errors out.
+A recv_thread whose reconstructor has failed notices only at its next enqueue(), which may be
+after another recv() call returns.
+- A thread that hits an error does not reliably signal beyond its own ring buffer, so they can
+keep running against state `main` is already tearing down.
+- Completion flags (`FIN`) in `main` are not atomic.
 
 **Memory management**
 - Ring buffer synchronization objects are not destroyed on exit.
@@ -211,8 +218,9 @@ hide them.
 - Windows only (Winsock2 and Win32 threads), one file per run, IPv4 addresses only.
 
 ### Roadmap
-- [ ] Clean shutdown: a shared cancellation flag plus waking blocked threads, so any failure
-      exits both ends cleanly
+- [ ] Clean shutdown, remaining work: a shared cancellation flag that also reaches threads
+blocked in recv() or send(), plus atomic FIN flags. (Failure signaling between producer and
+consumer through the ring buffer is done.)
 - [x] Audit and fix every allocation and free path, then verify with a leak checker
 - [ ] Add ring_buffer_destroy and call it on both ends at shutdown
 - [ ] Loop `send()` until all bytes are sent
@@ -220,6 +228,3 @@ hide them.
 - [ ] SHA-256 checksum verified by the receiver
 - [ ] Keep the output file open for the whole transfer
 - [ ] Benchmarks: pipelined vs. naive loop, and the effect of buffer size and chunk size
-- [ ] Multiple files per session, then resume after a dropped connection
-- [ ] Portable build (POSIX sockets and pthreads) so it runs on Linux
-- [ ] Optional TLS

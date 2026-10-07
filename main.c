@@ -118,7 +118,7 @@ int main() {
 
                 printf("Beginning connection.\n");
 
-                ring_buffer send_rb;
+                ring_buffer send_rb = {0};
                 ring_buffer_init(&send_rb);
 
                 file_reader_ctx reader_ctx = {0};
@@ -203,7 +203,7 @@ int main() {
                 return EXIT_FAILURE;
             }
 
-            ring_buffer recv_rb;
+            ring_buffer recv_rb = {0};
             ring_buffer_init(&recv_rb);
                 
             recv_context recv_ctx = {0};

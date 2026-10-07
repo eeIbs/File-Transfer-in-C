@@ -18,13 +18,19 @@ typedef struct{
     CRITICAL_SECTION lock;
 
     bool producer_failure;
+    bool consumer_failure;
 
 } ring_buffer;
 
 typedef enum{
     DEQUEUE_OK, // Returns this value when there is no issue.
-    DEQUEUE_PROD_FAIL, // Returns this value when producer fails.
+    DEQUEUE_PRDCR_FAIL, // Returns this value when producer fails.
 } rb_dequeue_status;
+
+typedef enum{
+    ENQUEUE_OK, // Returns this value when there is no issue.
+    ENQUEUE_CNSMR_FAIL, // Returns this value when consumer fails.
+} rb_enqueue_status;
 
 
 void ring_buffer_destroy(ring_buffer* q);
@@ -35,11 +41,13 @@ bool isEmpty(ring_buffer* q);
 
 bool isFull(ring_buffer* q);
 
-void enqueue(ring_buffer *q, void *data_pointer);
+rb_enqueue_status enqueue(ring_buffer *q, void *data_pointer);
 
 rb_dequeue_status dequeue(ring_buffer *q, void **output);
 
 void ring_buffer_producer_failure(ring_buffer *q);
+
+void ring_buffer_consumer_failure(ring_buffer *q);
 
 
 #endif

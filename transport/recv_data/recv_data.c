@@ -14,22 +14,32 @@ DWORD WINAPI recv_thread(LPVOID thread_arg) {
  recv_context *recv_ctx = (recv_context *)thread_arg;
     
     while (recv_ctx->FIN == false) {
-        if (recv_data(recv_ctx) != 0) {
+
+        recv_status status = recv_data(recv_ctx);
+
+        if (status != RECV_OK) {
+
+            if (status == RECV_CNSMR_FAILURE) {
+                error_printer(RECV_DATA_FAILURE_MSG, "recv_thread forcefully stopped as reconstructor failed.\n");
+                recv_ctx->FIN = true;
+
+                return EXIT_FAILURE;
+            }
 
             error_printer(RECV_DATA_FAILURE_MSG, "recv_data function failed!\n");
             recv_ctx->FIN = true;
 
             ring_buffer_producer_failure(recv_ctx->ring_buffer);
 
-            return -1;
+            return EXIT_FAILURE;
         }
     }
 
-    return 0;
+    return EXIT_SUCCESS;
 
 }
 
-int recv_data(recv_context *recv_ctx) {
+recv_status recv_data(recv_context *recv_ctx) {
 
     recvd_msg_hdr msg_hdr;
 
@@ -52,13 +62,13 @@ int recv_data(recv_context *recv_ctx) {
                     
         if (recv_result == 0) {
             error_printer(RECV_DATA_FAILURE_MSG, "Connection was terminated!\n");
-            return -1;
+            return RECV_FAILURE;
         }
 
         if (recv_result == SOCKET_ERROR) {
             error_printer(RECV_DATA_FAILURE_MSG, "Lost connection!\n");
             printf("error code: %d\n", WSAGetLastError());
-            return -1;
+            return RECV_FAILURE;
         }
 
         hdr_bytes_recvd += recv_result;
@@ -79,7 +89,7 @@ int recv_data(recv_context *recv_ctx) {
         default:
             error_printer(RECV_DATA_FAILURE_MSG, "Packet of unknown `msg_header.msg_type` received.\n");
             printf("%u\n", msg_hdr.msg_type);
-            return -1;
+            return RECV_FAILURE;
 
 
         case FILE_START_MSG: {
@@ -101,12 +111,12 @@ int recv_data(recv_context *recv_ctx) {
 
                 if (recv_result == 0) {
                     error_printer(RECV_DATA_FAILURE_MSG, "Connection was terminated!\n");
-                    return -1;
+                    return RECV_FAILURE;
                 }
 
                 if (recv_result == SOCKET_ERROR) {
                     error_printer(RECV_DATA_FAILURE_MSG, "Lost connection!\n");
-                    return -1;
+                    return RECV_FAILURE;
                 }
 
                 start_payload_recvd += recv_result;
@@ -117,14 +127,19 @@ int recv_data(recv_context *recv_ctx) {
 
             if (start_msg_cpy == NULL) {
                 error_printer(RECV_DATA_FAILURE_MSG, "Memory allocation for received start packet failed before enqueue!\n");
-                return -1;
+                return RECV_FAILURE;
             }
 
             *start_msg_cpy = start_msg;
             
             // MAKE SURE CONSUMER ALWAYS USES `free(start_msg_cpy);` AFTER USE.
-            enqueue(recv_ctx->ring_buffer, start_msg_cpy);
+            rb_enqueue_status enq_status = enqueue(recv_ctx->ring_buffer, start_msg_cpy);
             
+            if (enq_status == ENQUEUE_CNSMR_FAIL) {
+                free(start_msg_cpy);
+                return RECV_CNSMR_FAILURE;
+            }
+
             break;
         }
 
@@ -133,7 +148,7 @@ int recv_data(recv_context *recv_ctx) {
             // Ensure length does not exceed max payload size.
             if (msg_hdr.payload_length > MAX_PAYLOAD_SIZE) {
                 error_printer(RECV_DATA_FAILURE_MSG, "payload_length exceeds predefined max payload size\n");
-                return -1;
+                return RECV_FAILURE;
             }
 
             recvd_data_msg recvd_msg;
@@ -151,12 +166,12 @@ int recv_data(recv_context *recv_ctx) {
 
                 if (recv_result == 0) {
                     error_printer(RECV_DATA_FAILURE_MSG, "Connection was terminated!\n");
-                    return -1;
+                    return RECV_FAILURE;
                 }
 
                 if (recv_result == SOCKET_ERROR) {
                     error_printer(RECV_DATA_FAILURE_MSG, "Lost connection!\n");
-                    return -1;
+                    return RECV_FAILURE;
                 }
 
                 data_payload_recvd += recv_result;
@@ -166,13 +181,18 @@ int recv_data(recv_context *recv_ctx) {
 
             if (data_pkt_cpy == NULL) {
                 error_printer(RECV_DATA_FAILURE_MSG, "Memory allocation for received data packet failed before enqueue!\n");
-                return -1;
+                return RECV_FAILURE;
             }
 
             *data_pkt_cpy = recvd_msg;
 
             // MAKE SURE CONSUMER ALWAYS USES `free(data_pkt_cpy);` AFTER USE.
-            enqueue(recv_ctx->ring_buffer, data_pkt_cpy);
+            rb_enqueue_status enq_status = enqueue(recv_ctx->ring_buffer, data_pkt_cpy);
+
+            if (enq_status == ENQUEUE_CNSMR_FAIL) {
+                free(data_pkt_cpy);
+                return RECV_CNSMR_FAILURE;
+            }
 
             break;
         }
@@ -182,29 +202,34 @@ int recv_data(recv_context *recv_ctx) {
             // Ensure payload_length is exactly 0, sender will always send 0.
             if (msg_hdr.payload_length != 0) {
                 error_printer(RECV_DATA_FAILURE_MSG, "payload_length must be 0\n");
-                return -1;
+                return RECV_FAILURE;
             }
 
             recvd_data_msg recvd_msg;
             recvd_msg.msg_header = msg_hdr;
 
-            recvd_data_msg *data_pkt_cpy = malloc(sizeof(*data_pkt_cpy));
-            if (data_pkt_cpy == NULL) {
+            recvd_data_msg *end_pkt_cpy = malloc(sizeof(*end_pkt_cpy));
+            if (end_pkt_cpy == NULL) {
                 error_printer(RECV_DATA_FAILURE_MSG, "Memory allocation for received end packet failed before enqueue!\n");
-                return -1;
+                return RECV_FAILURE;
             }
 
-            *data_pkt_cpy = recvd_msg;
+            *end_pkt_cpy = recvd_msg;
 
-            enqueue(recv_ctx->ring_buffer, data_pkt_cpy);
-            
+            rb_enqueue_status enq_status = enqueue(recv_ctx->ring_buffer, end_pkt_cpy);
+
+            if (enq_status == ENQUEUE_CNSMR_FAIL) {
+                free(end_pkt_cpy);
+                return RECV_CNSMR_FAILURE;
+            }
+
             recv_ctx->FIN = true;
 
             break;
         }
     }
 
-    return 0;
+    return RECV_OK;
 
 }
 

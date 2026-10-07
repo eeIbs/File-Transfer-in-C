@@ -39,7 +39,13 @@ typedef struct recvd_end_msg {
 
 } recvd_end_msg;
 
-int recv_data(recv_context *recv_ctx);
+typedef enum{
+    RECV_OK,
+    RECV_FAILURE,
+    RECV_CNSMR_FAILURE,
+}recv_status;
+
+recv_status recv_data(recv_context *recv_ctx);
 
 DWORD WINAPI recv_thread(LPVOID thread_arg);
 

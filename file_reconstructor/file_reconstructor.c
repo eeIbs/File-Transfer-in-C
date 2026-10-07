@@ -21,6 +21,8 @@ DWORD WINAPI reconstructor_thread(LPVOID thread_args) {
 
             error_printer(FILE_WRITER_FAILURE_MSG, "reconstruct_file() failed. Quitting reconstructor thread.\n");
 
+            ring_buffer_consumer_failure(ctx->ring_buffer);
+
             ctx->FIN = true;
 
             return -1;
@@ -44,7 +46,7 @@ int reconstruct_file(ring_buffer *ring_buffer, reconstructor_ctx *ctx) {
 
         rb_dequeue_status dq_status = dequeue(ring_buffer, &raw_msg);
 
-        if (dq_status == DEQUEUE_PROD_FAIL) {
+        if (dq_status == DEQUEUE_PRDCR_FAIL) {
             error_printer(FILE_WRITER_FAILURE_MSG, "producer failed before finishing.\n");
             return -1;
         }

@@ -22,6 +22,12 @@ typedef struct file_reader_ctx{
 
 }file_reader_ctx;
 
+typedef enum{
+    READER_OK,
+    READER_FAILURE,
+    READER_CNSMR_FAILURE,
+}reader_status;
+
 
 DWORD WINAPI file_reader_thread(LPVOID thread_args);
 
@@ -29,6 +35,6 @@ int build_start_msg(const file_reader_ctx *reader_context, file_start_msg *start
 
 int build_data_msg(const file_reader_ctx *reader_context, file_data_msg *data_msg, size_t *bytes_read);
 
-int file_reader(file_reader_ctx *reader_context);
+reader_status file_reader(file_reader_ctx *reader_context);
 
 #endif

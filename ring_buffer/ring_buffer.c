@@ -65,6 +65,7 @@ void ring_buffer_init(ring_buffer* q){
     InitializeCriticalSection(&q->lock);
 
     q->producer_failure = false;
+    q->consumer_failure = false;
 
 }
 
@@ -106,13 +107,13 @@ bool isFull(ring_buffer* q){
  *
  * enqueue() never copies the object.
  *
- * Front is incremented.
+ * Rear is incremented.
  */
-void enqueue(ring_buffer *q, void *data_pointer){
+rb_enqueue_status enqueue(ring_buffer *q, void *data_pointer){
 
     EnterCriticalSection(&q->lock);
 
-    while(isFull(q)){
+    while(isFull(q) && !q->consumer_failure){
 
         SleepConditionVariableCS(
             &q->not_full,
@@ -121,12 +122,20 @@ void enqueue(ring_buffer *q, void *data_pointer){
         
     }
 
+    // If consumer fails, no point in enqueueing more messages, immediately report.
+    if (q->consumer_failure) {
+        LeaveCriticalSection(&q->lock);
+        return ENQUEUE_CNSMR_FAIL;
+    }
+
     q->event_pointer_buffer[(q->rear)%(QUEUE_CAPACITY)] = data_pointer;
     q->rear = (q->rear + 1) % QUEUE_CAPACITY;
 
     WakeConditionVariable(&q->not_empty);
 
     LeaveCriticalSection(&q->lock);
+
+    return ENQUEUE_OK;
 
 }
 
@@ -148,7 +157,7 @@ rb_dequeue_status dequeue(ring_buffer *q, void **output){
 
     if (q->producer_failure && isEmpty(q)) {
         LeaveCriticalSection(&q->lock);
-        return DEQUEUE_PROD_FAIL;
+        return DEQUEUE_PRDCR_FAIL;
     }
     
     void *data = q->event_pointer_buffer[(q->front)%(QUEUE_CAPACITY)];
@@ -167,7 +176,21 @@ rb_dequeue_status dequeue(ring_buffer *q, void **output){
 void ring_buffer_producer_failure(ring_buffer *q) {
     
     EnterCriticalSection(&q->lock);
+
     q->producer_failure = true;
+
+    WakeAllConditionVariable(&q->not_empty);
+    WakeAllConditionVariable(&q->not_full);
+
+    LeaveCriticalSection(&q->lock);
+
+}
+
+void ring_buffer_consumer_failure(ring_buffer *q) {
+
+    EnterCriticalSection(&q->lock);
+
+    q->consumer_failure = true;
 
     WakeAllConditionVariable(&q->not_empty);
     WakeAllConditionVariable(&q->not_full);
