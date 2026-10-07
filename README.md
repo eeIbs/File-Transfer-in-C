@@ -38,7 +38,7 @@ A naive file-transfer system using a looped send and receive cycle has multiple 
     
 2. Decoupling the stages with an unbounded queue only moves the problem. When one side is faster, the queue grows without limit and memory is exhausted. The system needs a bound that forces the fast side to wait.
 
-3. TCP is a byte stream with no message boundaries. A single recv() can return half a header or several messages joined together, so the receiver needs a framing scheme to know where each message starts and ends.
+3. TCP is a byte stream with no message boundaries. A single `recv()` can return half a header or several messages joined together, so the receiver needs a framing scheme to know where each message starts and ends.
 
 4. Separation of concerns. A single loop mixes disk, network and framing logic in one place. Splitting them into subsystems with narrow interfaces makes each one testable and replaceable on its own.
 
@@ -55,14 +55,14 @@ Neighbouring stages never call each other directly. They meet only at a bounded 
 
 Ownership of each heap-allocated message passes from producer to consumer through the buffer, so the consumer frees what the producer allocated. 
 
-To get message boundaries out of the byte stream, every message starts with a fixed-size header holding the message type (FILE_START_MSG, FILE_DATA_MSG or FILE_END_MSG) and a payload length that counts the bytes after the header. The receiver reads the full header, then loops until it has exactly that many payload bytes, which makes partial recv() calls harmless. 
+To get message boundaries out of the byte stream, every message starts with a fixed-size header holding the message type (`FILE_START_MSG`, `FILE_DATA_MSG` or `FILE_END_MSG`) and a payload length that counts the bytes after the header. The receiver reads the full header, then loops until it has exactly that many payload bytes, which makes partial `recv()` calls harmless. 
 
 See docs/ARCHITECTURE.md for the full design.
 
 
 ### How backpressure propagates
 
-Backpressure is not local to one buffer. It travels from the receiver's disk back to the sender's file reader. A slow disk makes the file reconstructor dequeue more slowly, so the receiver's buffer fills and the recv thread blocks in enqueue and stops calling recv(). The receiver's TCP window then fills, and the sender's send() blocks. That fills the sender's buffer and finally stalls the file reader. Nothing is dropped and memory never grows without bound.
+Backpressure is not local to one buffer. It travels from the receiver's disk back to the sender's file reader. A slow disk makes the file reconstructor dequeue more slowly, so the receiver's buffer fills and the recv thread blocks in enqueue and stops calling `recv()`. The receiver's TCP window then fills, and the sender's `send()` blocks. That fills the sender's buffer and finally stalls the file reader. Nothing is dropped and memory never grows without bound.
 
 reconstructor slows → receiver buffer full → recv blocks → TCP window full → send blocks → sender buffer full → file reader blocks
 
@@ -76,7 +76,7 @@ memory use are independent. The slot count only bounds how far the fast side can
 
 **One blocking thread per stage.** I chose this to keep the subsystems cleanly separated and to
 learn how they interact, not because it is the most scalable design. The cost is more threads
-and more context switches than an event loop (`select`, IOCP) would use. For one
+and more context switches than an event loop (`select`, `IOCP`) would use. For one
 connection and one file that cost is negligible. It would matter with many concurrent
 transfers, and an event-driven design would be the better fit there.
 
@@ -93,13 +93,13 @@ knows how much to read. Delimiter-based framing would need escaping, because fil
 **What the bound gives you, and what it doesn't.**
 Bounding the buffers caps memory and propagates backpressure. The ring buffer also propagates
 failure between the two threads that share it.
-If a consumer fails, ring_buffer_consumer_failure()
-wakes every blocked thread, and the producer's enqueue() returns ENQUEUE_CNSMR_FAIL instead of
+If a consumer fails, `ring_buffer_consumer_failure()`
+wakes every blocked thread, and the producer's `enqueue()` returns `ENQUEUE_CNSMR_FAIL` instead of
 blocking on a full queue.
-If a producer fails, ring_buffer_producer_failure() makes dequeue() return DEQUEUE_PRDCR_FAIL
+If a producer fails, `ring_buffer_producer_failure()` makes `dequeue()` return `DEQUEUE_PRDCR_FAIL`
 once the queue has drained.
 Failure still does not cross the network. If the peer machine dies, local threads can still block
-in recv(), so clean shutdown stays the top priority in the roadmap.
+in `recv()`, so clean shutdown stays the top priority in the roadmap.
 
 
 ### Benchmarks
@@ -108,8 +108,8 @@ in recv(), so clean shutdown stays the top priority in the roadmap.
 
 This benchmark isolates the disk side of the system. It runs the file reader thread and the
 file reconstructor over a single ring buffer, with no network involved. The reader takes the
-first file in ./file_to_send/, so bench.bin must be the only file there (delete the dummy
-file first). The reconstructor writes ./received_files/bench.bin, which is the name the final
+first file in `./file_to_send/`, so bench.bin must be the only file there (delete the dummy
+file first). The reconstructor writes `./received_files/bench.bin`, which is the name the final
 size check looks for. The timer wraps the reconstructor loop, from the first dequeue to the
 FIN message, and throughput is `file size / elapsed time` in decimal MB/s (1 MB = 1,000,000
 bytes). The test then compares the sent and received sizes and prints `PASS` or `FAIL`.
@@ -142,7 +142,7 @@ runs because of OS file caching, and I did not control for it.
 - Producer-consumer pipelines.
 - Bounded ring buffer with lock and condition variables. (blocking, not polling)
 - End-to-end backpressure through TCP flow control.
-- Message framing over a byte stream, including partial recv() handling.
+- Message framing over a byte stream, including partial `recv()` handling.
 - Ownership transfer of heap messages between threads.
 - Thread lifecycle and shutdown via an END message.
 
@@ -156,7 +156,7 @@ cmake --preset "GCC 15.1.0 x86_64-w64-mingw32"
 cmake --build --preset "GCC 15.1.0 x86_64-w64-mingw32"
 ```
 
-The build produces a single executable, file_transfer, which acts as either end of the transfer. It is chosen at runtime from a menu. Run it from the project root, because the ./file_to_send/ and ./received_files/ paths are relative.
+The build produces a single executable, file_transfer, which acts as either end of the transfer. It is chosen at runtime from a menu. Run it from the project root, because the `./file_to_send/` and `./received_files/` paths are relative.
 
 **First-time setup:** `file_to_send/` and `received_files/` each contain a small dummy file,
 because git doesn't track empty directories and they wouldn't exist after cloning otherwise.
@@ -164,10 +164,10 @@ Delete the dummy files after you clone, then run your own test.
 
 Receiving: start the program, choose 2, and optionally enter a bind address (default 127.0.0.1). It listens on port 27015 and waits for a sender.
 
-Sending: put the file you want to send in ./file_to_send/, start the program, and choose 1.
+Sending: put the file you want to send in `./file_to_send/`, start the program, and choose 1.
 The program shows the name of the first file it finds and asks `Continue to send? [y/n]`.
 Enter `y` to continue, then enter the receiver's IP and port. Only one file is sent per run,
-so keep a single file in ./file_to_send/. The received file appears in ./received_files/.
+so keep a single file in `./file_to_send/`. The received file appears in `./received_files/.`
 
 
 # Project layout
@@ -194,9 +194,9 @@ hide them.
 
 **Shutdown and error handling** (top priority)
 - Failure propagates through each ring buffer, but not across the network. If the remote side
-disconnects, a local thread blocked in recv() is only released when the socket errors out.
-A recv_thread whose reconstructor has failed notices only at its next enqueue(), which may be
-after another recv() call returns.
+disconnects, a local thread blocked in `recv()` is only released when the socket errors out.
+A recv_thread whose reconstructor has failed notices only at its next `enqueue()`, which may be
+after another `recv()` call returns.
 - A thread that hits an error does not reliably signal beyond its own ring buffer, so they can
 keep running against state `main` is already tearing down.
 - Completion flags (`FIN`) in `main` are not atomic.
@@ -219,10 +219,10 @@ keep running against state `main` is already tearing down.
 
 ### Roadmap
 - [ ] Clean shutdown, remaining work: a shared cancellation flag that also reaches threads
-blocked in recv() or send(), plus atomic FIN flags. (Failure signaling between producer and
+blocked in `recv()` or `send()`, plus atomic `FIN` flags. (Failure signaling between producer and
 consumer through the ring buffer is done.)
 - [x] Audit and fix every allocation and free path, then verify with a leak checker
-- [ ] Add ring_buffer_destroy and call it on both ends at shutdown
+- [ ] Add `ring_buffer_destroy` and call it on both ends at shutdown
 - [ ] Loop `send()` until all bytes are sent
 - [ ] Fixed-width, packed, network-byte-order header with bounds checks and filename sanitizing
 - [ ] SHA-256 checksum verified by the receiver
