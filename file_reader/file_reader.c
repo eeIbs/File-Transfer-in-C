@@ -361,7 +361,7 @@ reader_status file_reader(file_reader_ctx *reader_context) {
 
         total_bytes_framed += bytes_read;
 
-        rb_enqueue_status enq_status = enqueue(rb, data_msg);
+        enq_status = enqueue(rb, data_msg);
 
         if (enq_status == ENQUEUE_CNSMR_FAIL) {
             fclose(fptr);
@@ -401,7 +401,7 @@ reader_status file_reader(file_reader_ctx *reader_context) {
     reader_context->FIN = true;
 
 
-    rb_enqueue_status enq_status = enqueue(rb, end_msg);
+    enq_status = enqueue(rb, end_msg);
 
     if (enq_status == ENQUEUE_CNSMR_FAIL) {
         fclose(fptr);
