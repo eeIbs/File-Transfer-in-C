@@ -15,6 +15,8 @@ typedef struct send_context {
 
     bool FIN;
 
+    bool conn_terminated;
+
 } send_context;
 
 #endif

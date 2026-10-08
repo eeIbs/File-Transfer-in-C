@@ -18,6 +18,8 @@ typedef struct recv_context{
 
     bool FIN;
 
+    bool conn_terminated;
+
 } recv_context;
 
 

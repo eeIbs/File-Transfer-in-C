@@ -23,6 +23,8 @@
 
 
 #define MAIN_FAILURE_MSG "Failure - main.c"
+#define MAIN_SEND_FAILURE_MSG "Failure - main.c - sender side"
+#define MAIN_RECV_FAILURE_MSG "Failure - main.c - receiver side"
 
 #define FILE_TO_SEND_PATH "./file_to_send/"
 
@@ -151,6 +153,28 @@ int main() {
                 WaitForSingleObject(reader_thread_handle, INFINITE);
                 WaitForSingleObject(send_thread_handle, INFINITE);
 
+                DWORD reader_exit = 0, send_exit = 0;
+                GetExitCodeThread(reader_thread_handle, &reader_exit);
+                GetExitCodeThread(send_thread_handle, &send_exit);
+
+                if (reader_exit != EXIT_SUCCESS || send_exit != EXIT_SUCCESS) {
+                    error_printer(MAIN_SEND_FAILURE_MSG, "Sender side failed.\n");
+                    
+                    printf("Stopping sender side.\n");
+
+                    CloseHandle(reader_thread_handle);
+                    CloseHandle(send_thread_handle);
+
+                    closesocket(send_socket);
+                    WSACleanup();
+
+                    closedir(send_dir);
+
+                    ring_buffer_destroy(&send_rb);
+                    
+                    return EXIT_FAILURE;
+                }
+
                 printf("Sender finished!\n");
 
                 CloseHandle(reader_thread_handle);
@@ -239,6 +263,27 @@ int main() {
 
             WaitForSingleObject(recv_thread_handle, INFINITE);
             WaitForSingleObject(recons_thread_handle, INFINITE);
+            
+            DWORD recv_exit = 0, recons_exit = 0;
+            GetExitCodeThread(recv_thread_handle, &recv_exit);
+            GetExitCodeThread(recons_thread_handle, &recons_exit);
+
+            if (recv_exit != EXIT_SUCCESS || recons_exit != EXIT_SUCCESS) {
+                error_printer(MAIN_RECV_FAILURE_MSG, "Receiver side failed.\n");
+                
+                printf("Stopping receiver side.\n");
+
+                CloseHandle(recv_thread_handle);
+                CloseHandle(recons_thread_handle);
+
+                closesocket(recv_connection_ctx.sock);
+                WSACleanup();
+
+                ring_buffer_destroy(&recv_rb);
+                
+                return EXIT_FAILURE;
+            }
+
 
             printf("Receiver finished.\n");
             printf("Received file is in ./received_files \n");
@@ -255,10 +300,6 @@ int main() {
 
         }
 
-
-        }
     }
 
-
-// TODO: FINISH SEND CYCLE
-// TODO: FINISH RECEIVE CYCLE
+}

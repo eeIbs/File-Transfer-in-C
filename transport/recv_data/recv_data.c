@@ -13,7 +13,7 @@ DWORD WINAPI recv_thread(LPVOID thread_arg) {
 
  recv_context *recv_ctx = (recv_context *)thread_arg;
     
-    while (recv_ctx->FIN == false) {
+    while (!recv_ctx->FIN && !recv_ctx->conn_terminated) {
 
         recv_status status = recv_data(recv_ctx);
 
@@ -21,13 +21,11 @@ DWORD WINAPI recv_thread(LPVOID thread_arg) {
 
             if (status == RECV_CNSMR_FAILURE) {
                 error_printer(RECV_DATA_FAILURE_MSG, "recv_thread forcefully stopped as reconstructor failed.\n");
-                recv_ctx->FIN = true;
 
                 return EXIT_FAILURE;
             }
 
             error_printer(RECV_DATA_FAILURE_MSG, "recv_data function failed!\n");
-            recv_ctx->FIN = true;
 
             ring_buffer_producer_failure(recv_ctx->ring_buffer);
 
@@ -62,12 +60,14 @@ recv_status recv_data(recv_context *recv_ctx) {
                     
         if (recv_result == 0) {
             error_printer(RECV_DATA_FAILURE_MSG, "Connection was terminated!\n");
+            recv_ctx->conn_terminated = true;
             return RECV_FAILURE;
         }
 
         if (recv_result == SOCKET_ERROR) {
             error_printer(RECV_DATA_FAILURE_MSG, "Lost connection!\n");
             printf("error code: %d\n", WSAGetLastError());
+            recv_ctx->conn_terminated = true;
             return RECV_FAILURE;
         }
 
@@ -111,11 +111,13 @@ recv_status recv_data(recv_context *recv_ctx) {
 
                 if (recv_result == 0) {
                     error_printer(RECV_DATA_FAILURE_MSG, "Connection was terminated!\n");
+                    recv_ctx->conn_terminated = true;
                     return RECV_FAILURE;
                 }
 
                 if (recv_result == SOCKET_ERROR) {
                     error_printer(RECV_DATA_FAILURE_MSG, "Lost connection!\n");
+                    recv_ctx->conn_terminated = true;
                     return RECV_FAILURE;
                 }
 
@@ -166,11 +168,13 @@ recv_status recv_data(recv_context *recv_ctx) {
 
                 if (recv_result == 0) {
                     error_printer(RECV_DATA_FAILURE_MSG, "Connection was terminated!\n");
+                    recv_ctx->conn_terminated = true;
                     return RECV_FAILURE;
                 }
 
                 if (recv_result == SOCKET_ERROR) {
                     error_printer(RECV_DATA_FAILURE_MSG, "Lost connection!\n");
+                    recv_ctx->conn_terminated = true;
                     return RECV_FAILURE;
                 }
 

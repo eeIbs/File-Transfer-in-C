@@ -98,8 +98,12 @@ wakes every blocked thread, and the producer's `enqueue()` returns `ENQUEUE_CNSM
 blocking on a full queue.
 If a producer fails, `ring_buffer_producer_failure()` makes `dequeue()` return `DEQUEUE_PRDCR_FAIL`
 once the queue has drained.
-Failure still does not cross the network. If the peer machine dies, local threads can still block
-in `recv()`, so clean shutdown stays the top priority in the roadmap.
+Failure does not cross the network by itself, but it is now detected at the socket. A `recv()` that
+returns 0 or `SOCKET_ERROR`, or a `send()` that fails, is treated as a failed transfer. The thread
+returns `EXIT_FAILURE`, the ring buffer wakes its peer thread, and `main` reads the thread exit
+codes after joining, reports which side failed, cleans up and exits with a failure code. A peer
+that disappears without closing the connection (power loss, cable pulled) can still leave a thread
+blocked in `recv()` until TCP gives up.
 
 
 ### Benchmarks
@@ -144,7 +148,8 @@ runs because of OS file caching, and I did not control for it.
 - End-to-end backpressure through TCP flow control.
 - Message framing over a byte stream, including partial `recv()` handling.
 - Ownership transfer of heap messages between threads.
-- Thread lifecycle and shutdown via an END message.
+- Thread lifecycle and shutdown via an END message, with failures reported to `main` through thread exit codes.
+- Detecting a dead peer from `recv()` returning 0 or `SOCKET_ERROR`, versus a clean close after `FILE_END_MSG`.
 
 
 ### Build and run
@@ -186,23 +191,21 @@ so keep a single file in `./file_to_send/`. The received file appears in `./rece
 
 Work in progress. The core pipeline works end to end: a file moves from disk to the
 sender's ring buffer, over TCP, through the receiver's ring buffer, and back onto disk, with
-backpressure propagating across the whole chain. I'm now hardening shutdown and error
-handling, and the transport layer. The issues below are known, and I'd rather list them than
-hide them.
+backpressure propagating across the whole chain. Shutdown and error reporting now work for the
+common failure cases (peer disconnects, disk or allocation errors). I'm now working on the
+transport layer. Known Issues are mentioned.
 
 ### Known issues
 
-**Shutdown and error handling** (top priority)
-- Failure propagates through each ring buffer, but not across the network. If the remote side
-disconnects, a local thread blocked in `recv()` is only released when the socket errors out.
-A recv_thread whose reconstructor has failed notices only at its next `enqueue()`, which may be
-after another `recv()` call returns.
-- A thread that hits an error does not reliably signal beyond its own ring buffer, so they can
-keep running against state `main` is already tearing down.
-- Completion flags (`FIN`) in `main` are not atomic.
-
-**Memory management**
-- Ring buffer synchronization objects are not destroyed on exit.
+**Shutdown and error handling**
+- A peer that vanishes without closing the connection can leave a thread blocked in `recv()` until
+  TCP times out. There is no keepalive, timeout or cancellation flag that reaches a blocked thread.
+- A recv_thread whose reconstructor has failed notices only at its next `enqueue()`, which may be
+  after another `recv()` call returns.
+- Completion flags (`FIN`, `conn_terminated`) are plain `bool`s shared between threads, not atomic.
+  `main` only reads them after joining, but they are not safe to read while threads run.
+- The sender cannot tell whether the receiver finished writing the file. A successful send means the
+  bytes were handed to the OS. There is no end-of-transfer acknowledgement.
 
 **Transport**
 - `send()` is not looped, so a partial send is not handled. The receive side handles partial
@@ -218,12 +221,12 @@ keep running against state `main` is already tearing down.
 - Windows only (Winsock2 and Win32 threads), one file per run, IPv4 addresses only.
 
 ### Roadmap
-- [ ] Clean shutdown, remaining work: a shared cancellation flag that also reaches threads
-blocked in `recv()` or `send()`, plus atomic `FIN` flags. (Failure signaling between producer and
-consumer through the ring buffer is done.)
-- [x] Audit and fix every allocation and free path, then verify with a leak checker
-- [ ] Add `ring_buffer_destroy` and call it on both ends at shutdown
-- [ ] Loop `send()` until all bytes are sent
+- [x] Failure signaling between producer and consumer through the ring buffer
+- [x] Report thread failures to `main` through exit codes and handle `recv() == 0` as a lost connection
+- [x] Audit and fix every allocation and free path
+- [x] Add `ring_buffer_destroy` and call it on both ends at shutdown
+- [ ] Clean shutdown, remaining work: a cancellation flag that reaches threads blocked in `recv()` or
+  `send()`, atomic `FIN` flags, and an end-of-transfer acknowledgement
 - [ ] Fixed-width, packed, network-byte-order header with bounds checks and filename sanitizing
 - [ ] SHA-256 checksum verified by the receiver
 - [ ] Keep the output file open for the whole transfer

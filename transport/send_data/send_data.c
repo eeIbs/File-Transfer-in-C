@@ -13,7 +13,7 @@ DWORD WINAPI send_thread(LPVOID thread_args) {
 
     send_context *ctx = (send_context *)thread_args;
     
-    while (!ctx->FIN) {
+    while (!ctx->FIN && !ctx->conn_terminated) {
         
         void *raw_msg; 
         
@@ -29,7 +29,9 @@ DWORD WINAPI send_thread(LPVOID thread_args) {
 
             ring_buffer_consumer_failure(ctx->ring_buffer);
 
-            ctx->FIN = true;
+            free(raw_msg);
+
+            return EXIT_FAILURE;
         }
 
         free(raw_msg);
@@ -55,6 +57,7 @@ int send_data(void *raw_msg, send_context *send_ctx) {
             int send_result = send(send_socket, (const char *)hdr, msg_length, 0);
             if(send_result == SOCKET_ERROR) {
                 error_printer(SEND_DATA_ERR, "send() failed in case FILE_START_MSG.\n");
+                send_ctx->conn_terminated = true;
                 return -1;
             }
             break;
@@ -65,6 +68,7 @@ int send_data(void *raw_msg, send_context *send_ctx) {
             int send_result = send(send_socket, (const char *)hdr, msg_length, 0);
             if(send_result == SOCKET_ERROR) {
                 error_printer(SEND_DATA_ERR, "send() failed in case FILE_DATA_MSG.\n");
+                send_ctx->conn_terminated = true;
                 return -1;
             }
             break;
@@ -75,6 +79,7 @@ int send_data(void *raw_msg, send_context *send_ctx) {
             int send_result = send(send_socket, (const char *)hdr, msg_length, 0);
             if(send_result == SOCKET_ERROR) {
                 error_printer(SEND_DATA_ERR, "send() failed in case FILE_END_MSG.\n");
+                send_ctx->conn_terminated = true;
                 return -1;
             }
             send_ctx->FIN = true;
