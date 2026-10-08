@@ -1,6 +1,8 @@
 #ifndef FILE_RECONSTRUCTOR_H
 #define FILE_RECONSTRUCTOR_H
 
+#include <stdio.h>
+
 #include "../transport/recv_data/recv_data.h"
 #include "../error_handling/error_print.h"
 #include "../ring_buffer/ring_buffer.h"
@@ -9,7 +11,9 @@ typedef struct reconstructor_ctx{
 
     ring_buffer *ring_buffer;
 
-    bool FIN;
+    bool done;
+
+    FILE *fptr;
 
 }reconstructor_ctx;
 

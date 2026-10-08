@@ -51,6 +51,29 @@ int send_data(void *raw_msg, send_context *send_ctx) {
 
     size_t msg_length = sizeof(send_msg_hdr) + hdr->payload_length; 
 
+    size_t total_sent = 0;
+
+    while (total_sent < msg_length) {
+
+        int send_result = send(send_socket, (const char *)hdr + total_sent, (int)(msg_length - total_sent), 0);
+        
+        if(send_result == SOCKET_ERROR) {
+            error_printer(SEND_DATA_ERR, "send() failed.\n");
+            send_ctx->conn_terminated = true;
+            return -1;
+        
+        }
+        total_sent += (size_t)send_result;
+    
+    }
+
+    if (hdr->msg_type == FILE_END_MSG) {
+        send_ctx->FIN = true;
+    }
+
+    return 0;
+
+/*
     switch(hdr->msg_type) {
         case FILE_START_MSG:
         {   
@@ -88,5 +111,6 @@ int send_data(void *raw_msg, send_context *send_ctx) {
     }
 
     return 0;
+*/
 
 }

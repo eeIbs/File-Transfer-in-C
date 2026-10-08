@@ -119,8 +119,8 @@ FIN message, and throughput is `file size / elapsed time` in decimal MB/s (1 MB 
 bytes). The test then compares the sent and received sizes and prints `PASS` or `FAIL`.
 
 Because the reader and reconstructor run concurrently, the result is limited by the slower
-stage. In practice that is the reconstructor, which is reopening the output file for every
-chunk.
+stage. In the baseline, the limiting stage was the reconstructor, which reopened the output
+file for every chunk. The fixed version keeps one FILE* open from FILE_START_MSG to FILE_END_MSG.
 
 **Setup:** 268,435,456-byte (256 MiB) `.bin` file, 4 KB chunks, 32-slot ring buffer, 
 Intel i5-11400F, Toshiba HDWD110 SATA HDD, Windows 11.
@@ -133,13 +133,22 @@ fsutil file createnew file_to_send\bench.bin 268435456
 | Version | Output file handling | Throughput (MB/s) |
 |---|---|---|
 | Baseline | `fopen`/`fclose` per 4 KB chunk | 22–27 typical, 19.6 worst run |
-| After fix | Work in progress | Work in progress |
+| After fix | One fopen at START, one fclose at END | 450–480 typical, 547.9 peak, 55.7 worst run |
 
 **Results:**
-Opening the file again and again with `fopen()` called for every chunk, throughput ranged from 19.6 to 27 MB/s across repeated runs.
+Opening the file again and again with `fopen()` called for every chunk, throughput ranged from
+19.6 to 27 MB/s across repeated runs.
 
-**Caveats:** this measures the disk pipeline only, not the network. Numbers vary between
-runs because of OS file caching, and I did not control for it.
+Keeping the output file open for the whole transfer raised typical throughput from about 22–27 MB/s
+to about 450–480 MB/s, roughly a 20x improvement. The cost it removed was 65,536 open/close cycles
+per 256 MiB file, not the writes themselves.
+
+**Caveats:** this measures the disk pipeline only, not the network. The timer stops when the last
+chunk is handed to the OS, not when it reaches the disk. The fixed version's numbers are far above
+what a SATA HDD can sustain (roughly 150–200 MB/s), so they mostly reflect the Windows write cache
+absorbing the 256 MiB file. The before/after comparison is still fair because both runs had the same
+caching, but the absolute figures are not drive speed. I did not control for file caching, and runs
+vary because of it.
 
 
 ### Systems concepts covered
@@ -150,6 +159,7 @@ runs because of OS file caching, and I did not control for it.
 - Ownership transfer of heap messages between threads.
 - Thread lifecycle and shutdown via an END message, with failures reported to `main` through thread exit codes.
 - Detecting a dead peer from `recv()` returning 0 or `SOCKET_ERROR`, versus a clean close after `FILE_END_MSG`.
+- Lifetime and cleanup of a long-lived resource (FILE*) across threads and every error path.
 
 
 ### Build and run
@@ -175,7 +185,7 @@ Enter `y` to continue, then enter the receiver's IP and port. Only one file is s
 so keep a single file in `./file_to_send/`. The received file appears in `./received_files/.`
 
 
-# Project layout
+### Project layout
 
 | Folder              | Purpose                                                                                                                    |
 |---------------------|----------------------------------------------------------------------------------------------------------------------------|
@@ -192,8 +202,7 @@ so keep a single file in `./file_to_send/`. The received file appears in `./rece
 Work in progress. The core pipeline works end to end: a file moves from disk to the
 sender's ring buffer, over TCP, through the receiver's ring buffer, and back onto disk, with
 backpressure propagating across the whole chain. Shutdown and error reporting now work for the
-common failure cases (peer disconnects, disk or allocation errors). I'm now working on the
-transport layer. Known Issues are mentioned.
+common failure cases (peer disconnects, disk or allocation errors). Known Issues are mentioned.
 
 ### Known issues
 
@@ -202,14 +211,13 @@ transport layer. Known Issues are mentioned.
   TCP times out. There is no keepalive, timeout or cancellation flag that reaches a blocked thread.
 - A recv_thread whose reconstructor has failed notices only at its next `enqueue()`, which may be
   after another `recv()` call returns.
-- Completion flags (`FIN`, `conn_terminated`) are plain `bool`s shared between threads, not atomic.
-  `main` only reads them after joining, but they are not safe to read while threads run.
+- Completion flags (FIN, conn_terminated, and the reconstructor's done) are plain bools shared
+  between threads, not atomic. `main` only reads them after joining, but they are not safe to read
+  while threads run.
 - The sender cannot tell whether the receiver finished writing the file. A successful send means the
   bytes were handed to the OS. There is no end-of-transfer acknowledgement.
 
 **Transport**
-- `send()` is not looped, so a partial send is not handled. The receive side handles partial
-  reads correctly.
 - The header is sent in host byte order with no explicit packing.
 - The START message length is not validated against its struct size, and the received
   filename is not sanitized. **Do not use this on untrusted networks.**
@@ -217,7 +225,6 @@ transport layer. Known Issues are mentioned.
 **Limits**
 - Files over 2 GB are not supported (32-bit `long` on Windows).
 - No integrity check: the receiver does not verify the final size or a checksum.
-- The receiver reopens the output file for every 4 KB chunk. This is simple but slow.
 - Windows only (Winsock2 and Win32 threads), one file per run, IPv4 addresses only.
 
 ### Roadmap
@@ -225,8 +232,9 @@ transport layer. Known Issues are mentioned.
 - [x] Report thread failures to `main` through exit codes and handle `recv() == 0` as a lost connection
 - [x] Audit and fix every allocation and free path
 - [x] Add `ring_buffer_destroy` and call it on both ends at shutdown
+- [x] Loop send() until all bytes are sent
 - [ ] Clean shutdown, remaining work: a cancellation flag that reaches threads blocked in `recv()` or
-  `send()`, atomic `FIN` flags, and an end-of-transfer acknowledgement
+  `send()`, atomic completion flags, and an end-of-transfer acknowledgement
 - [ ] Fixed-width, packed, network-byte-order header with bounds checks and filename sanitizing
 - [ ] SHA-256 checksum verified by the receiver
 - [ ] Keep the output file open for the whole transfer

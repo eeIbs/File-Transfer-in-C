@@ -88,7 +88,7 @@ int main() {
     recons_ctx.ring_buffer = &rb;
 
     QueryPerformanceCounter(&t0);
-    while (!recons_ctx.FIN) {
+    while (!recons_ctx.done) {
         reconstruct_file(&rb, &recons_ctx);
     }
     QueryPerformanceCounter(&t1);
